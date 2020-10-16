@@ -26,7 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ssd1306.h"
+//#include "ssd1306.h"
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -86,6 +87,116 @@ void SystemClock_Config(void);
 //  return data;
 //}
 
+void loading_animation() {
+  
+  SSD1306_ON();  
+  
+  TM_SSD1306_Fill(0); //clear oled  
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
+  TM_SSD1306_DrawCircle(64, 50, 3, 1);
+  TM_SSD1306_DrawCircle(84, 50, 3, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  HAL_Delay(400);
+  
+  TM_SSD1306_Fill(0); //clear oled  
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_DrawCircle(44, 50, 3, 1);
+  TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
+  TM_SSD1306_DrawCircle(84, 50, 3, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  HAL_Delay(400);
+  
+  TM_SSD1306_Fill(0); //clear oled  
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_DrawCircle(44, 50, 3, 1);
+  TM_SSD1306_DrawCircle(64, 50, 3, 1);
+  TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  HAL_Delay(400);
+  
+  
+}
+
+void measuring_animation() {
+  
+  TM_SSD1306_Fill(0); //clear oled
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+  TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
+  TM_SSD1306_DrawCircle(64, 50, 3, 1);
+  TM_SSD1306_DrawCircle(84, 50, 3, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  
+  SSD1306_ON();
+  HAL_Delay(500);
+  
+  TM_SSD1306_Fill(0); //clear oled
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+  TM_SSD1306_DrawCircle(44, 50, 3, 1);
+  TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
+  TM_SSD1306_DrawCircle(84, 50, 3, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  HAL_Delay(500);
+  
+  TM_SSD1306_Fill(0); //clear oled 
+  TM_SSD1306_GotoXY(10,15);
+  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+  TM_SSD1306_DrawCircle(44, 50, 3, 1);
+  TM_SSD1306_DrawCircle(64, 50, 3, 1);
+  TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
+  TM_SSD1306_UpdateScreen(); //display
+  HAL_Delay(500);
+  
+}
+
+void display_temp(float data_temp) {
+  if (data_temp == 0.0) {
+    TM_SSD1306_Fill(0); //clear oled
+    TM_SSD1306_GotoXY(10,15);
+    TM_SSD1306_Puts("Temp: ", &TM_Font_11x18, 1);
+    TM_SSD1306_UpdateScreen(); //display
+  }
+  else {
+    if (data_temp == -1.0) {
+      TM_SSD1306_Fill(0); //clear oled
+      TM_SSD1306_GotoXY(10,15);
+      TM_SSD1306_Puts("Temp:  Err", &TM_Font_11x18, 1);
+      TM_SSD1306_UpdateScreen(); //display
+    }
+    else {
+      uint8_t buf[16];
+      sprintf(buf, "Temp: %.2F", data_temp);
+      TM_SSD1306_Fill(0); //clear oled
+      TM_SSD1306_GotoXY(10,15);
+      TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+      TM_SSD1306_UpdateScreen(); //display
+    }
+  }
+}
+
+void process_error() {
+  
+  //=== Print "Err" instead temp
+//  printf("Error!\n ");
+  display_temp(-1.0);
+//  HAL_UART_Transmit(&huart6, (uint8_t*)"Error!", 6, 0xFFFF);
+  
+  HAL_I2C_DeInit(&hi2c1);
+  HAL_Delay(150);
+  MX_I2C1_Init();
+}
+
+void send_uart(float data_temp) {
+  uint8_t buf[16];
+  sprintf(buf, "Temp %.2F      ", data_temp);
+//  HAL_UART_Transmit(&huart6, (uint8_t*)&buf, sizeof(buf), 0xFFFF);
+//  HAL_UART_Transmit(&huart6, (uint8_t*)"              \r\n", sizeof(buf), 0xFFFF);
+//  printf("data1 %4.2F \n", data_temp);
+//  printf("data %s \n", buf);
+}
+
 void set_new_addr(int8_t new_adr, int32_t mem_adr, uint8_t *in_buff) 
 {
   uint8_t Err = 0;
@@ -123,37 +234,51 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  SSD1306_Init();
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  // --- Achtung! --- Reset the I2C before use! Bug in STM32F100 !!!
+  __HAL_RCC_I2C1_CLK_ENABLE();
+  HAL_Delay(100);
+  __HAL_RCC_I2C1_FORCE_RESET();
+  HAL_Delay(100);
+  __HAL_RCC_I2C1_RELEASE_RESET();
+  HAL_Delay(100);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_Delay(300);
+  uint8_t res = TM_SSD1306_Init();
+//  printf("OLED init: %d\n", res);
+  
+  
+  //=== Loop loading animation several times
+  int counter = 3;
+  while (--counter > 0) {
+    loading_animation();
+  }
+  
+  SSD1306_OFF();
   
   uint16_t data1 = 0;
   float data1_fl = 0.0;
+  float max_data = 0.0;
   uint8_t Err = 0;
   
-  int8_t new_adr = 0xB4;
+  int8_t i2c_adr = 0xB4;
   uint32_t mem_adr = 0x07;
   uint8_t in_buff[0x04];
   
+  uint16_t activity_flag = 100;
   
-  SSD1306_GotoXY(0, 44); //????????????? ?????? ? ??????? 0;44. ??????? ?? ???????????, ????? ?????????.
-  SSD1306_Puts("Hello, habrahabr!!", &Font_7x10, SSD1306_COLOR_WHITE); //????? ??????? ? ???????????? ??????? ??????? "Font_7x10" ????? ??????. 
-  SSD1306_DrawCircle(10, 33, 7, SSD1306_COLOR_WHITE);
-  
-  SSD1306_UpdateScreen();
-  
-  // Set new_adr as new I2C address
+  //=== Set new_adr as new I2C address
+//  int8_t new_adr = 0xB4;
 //  set_new_addr(new_adr, mem_adr, in_buff)
   
   /* USER CODE END 2 */
@@ -162,40 +287,64 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-    Err = HAL_I2C_Mem_Read(&hi2c1, new_adr, mem_adr, 1, in_buff, 3, 100);
-//    HAL_Delay(10);
-    if (Err == HAL_OK){
-      data1 = (in_buff[1] <<8 | in_buff[0]); 
-      data1_fl = (float)(data1 - 13658) / 50;
-      uint8_t buf[16];
-//      sprintf(buf, "Temp %.2F      ", data1_fl);
-//      HAL_UART_Transmit(&huart6, (uint8_t*)&buf, sizeof(buf), 0xFFFF);
-//      HAL_UART_Transmit(&huart6, (uint8_t*)"              \r\n", sizeof(buf), 0xFFFF);
-//      printf("data1 %4.2F \n", data1_fl);
-      //printf("data %s \n", buf);
-    }
-    else{
-      printf("Error!\n ");
-      //HAL_UART_Transmit(&huart6, (uint8_t*)"Error!", 6, 0xFFFF);
-      HAL_I2C_DeInit(&hi2c1);
-      HAL_Delay(150);
-      MX_I2C1_Init();
-    }
-    
-    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET) {
-      HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-      printf("data1 %4.2F \n", data1_fl);
-//      HAL_Delay(500);
+    //=== Read data from sensor via I2C
+    Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 100);
+    HAL_Delay(100);
+        
+    //=== Check if there is no error in I2C read
+    if (Err != HAL_OK) {
+      process_error();
     }
     else {
-      HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+//      display_temp(0.0);
+      //=== Display the Temp while button is pressed
+      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET) {
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+//        printf("data1 %4.2F \n", data1_fl);
+        
+        int delay = 4;
+        while ((--delay > 0)) {
+          //=== Read data from sensor via I2C
+          Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 10);
+  //        HAL_Delay(50);
+          
+          //=== Check if there is no error in I2C read
+          if (Err == HAL_OK) {
+            data1 = (in_buff[1] << 8 | in_buff[0]); 
+            data1_fl = (float)(data1 - 13658) / 50;
+            if (max_data < data1_fl) {
+              max_data = data1_fl;
+            }
+          }
+          else {
+            process_error();
+          }
+            
+          measuring_animation(); 
+        }
+        
+        //=== Print temperature in terminal and oled-display
+        display_temp(max_data);
+        max_data = 0.0;
+        HAL_Delay(2000);
+  //      display_temp(0.0);
+        activity_flag = 100;
+      }
+      else {
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+        if (activity_flag == 0) {
+          SSD1306_OFF();
+        }
+        else {
+          activity_flag--;
+//          printf("Activity timer: %d\n", activity_flag);
+        }
+      }  
     }
-//    HAL_Delay(70);
-    
-    
-    /* USER CODE BEGIN 3 */
   }
+    
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 

@@ -1,4 +1,4 @@
-"C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Src\ssd1306\fonts.c"
+"C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Src\fonts.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512

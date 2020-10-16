@@ -1269,34 +1269,13 @@
     <group>
         <name>ssd1306</name>
         <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\fonts.c</name>
+            <name>$PROJ_DIR$\..\Src\fonts.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\fonts.h</name>
+            <name>$PROJ_DIR$\..\Src\oled.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\ssd1306.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\ssd1306.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\ssd1306_i2c.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306\ssd1306_i2c.h</name>
-        </file>
-    </group>
-    <group>
-        <name>STDDrivers</name>
-        <file>
-            <name>$PROJ_DIR$\..\Src\STDDrivers\stm32f10x.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\STDDrivers\system_stm32f10x.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\STDDrivers\system_stm32f10x.h</name>
+            <name>$PROJ_DIR$\..\Src\ssd1306.c</name>
         </file>
     </group>
 </project>
