@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\EWARM\settings\Thermo_blue.Thermo_blue.general.xcl" --backend -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\EWARM\settings\Thermo_blue.Thermo_blue.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_bluepill\EWARM\settings\Thermo_blue.Thermo_blue.general.xcl" --backend -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_bluepill\EWARM\settings\Thermo_blue.Thermo_blue.driver.xcl" 
 }
 else
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\EWARM\settings\Thermo_blue.Thermo_blue.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\EWARM\settings\Thermo_blue.Thermo_blue.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_bluepill\EWARM\settings\Thermo_blue.Thermo_blue.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_bluepill\EWARM\settings\Thermo_blue.Thermo_blue.driver.xcl" 
 }

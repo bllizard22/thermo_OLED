@@ -89,6 +89,8 @@ void SystemClock_Config(void);
 
 void loading_animation() {
   
+  uint16_t delay_value = 300;
+  
   SSD1306_ON();  
   
   TM_SSD1306_Fill(0); //clear oled  
@@ -97,7 +99,7 @@ void loading_animation() {
   TM_SSD1306_DrawCircle(64, 50, 3, 1);
   TM_SSD1306_DrawCircle(84, 50, 3, 1);
   TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(400);
+  HAL_Delay(delay_value);
   
   TM_SSD1306_Fill(0); //clear oled  
   TM_SSD1306_GotoXY(10,15);
@@ -105,7 +107,7 @@ void loading_animation() {
   TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
   TM_SSD1306_DrawCircle(84, 50, 3, 1);
   TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(400);
+  HAL_Delay(delay_value);
   
   TM_SSD1306_Fill(0); //clear oled  
   TM_SSD1306_GotoXY(10,15);
@@ -113,41 +115,53 @@ void loading_animation() {
   TM_SSD1306_DrawCircle(64, 50, 3, 1);
   TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
   TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(400);
+  HAL_Delay(delay_value);
   
   
 }
 
-void measuring_animation() {
+void measuring_animation(uint8_t pos) {
   
-  TM_SSD1306_Fill(0); //clear oled
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-  TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
-  TM_SSD1306_DrawCircle(64, 50, 3, 1);
-  TM_SSD1306_DrawCircle(84, 50, 3, 1);
-  TM_SSD1306_UpdateScreen(); //display
+  uint16_t delay_value = 210;
   
-  SSD1306_ON();
-  HAL_Delay(500);
-  
-  TM_SSD1306_Fill(0); //clear oled
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-  TM_SSD1306_DrawCircle(44, 50, 3, 1);
-  TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
-  TM_SSD1306_DrawCircle(84, 50, 3, 1);
-  TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(500);
-  
-  TM_SSD1306_Fill(0); //clear oled 
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-  TM_SSD1306_DrawCircle(44, 50, 3, 1);
-  TM_SSD1306_DrawCircle(64, 50, 3, 1);
-  TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
-  TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(500);
+  switch (pos){
+    case 1: {
+    TM_SSD1306_Fill(0); //clear oled
+    TM_SSD1306_GotoXY(10,15);
+    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+    TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
+    TM_SSD1306_DrawCircle(64, 50, 3, 1);
+    TM_SSD1306_DrawCircle(84, 50, 3, 1);
+    TM_SSD1306_UpdateScreen(); //display 
+    SSD1306_ON();
+    HAL_Delay(delay_value);
+    break;
+    }
+    
+    case 2: {
+    TM_SSD1306_Fill(0); //clear oled
+    TM_SSD1306_GotoXY(10,15);
+    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+    TM_SSD1306_DrawCircle(44, 50, 3, 1);
+    TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
+    TM_SSD1306_DrawCircle(84, 50, 3, 1);
+    TM_SSD1306_UpdateScreen(); //display
+    HAL_Delay(delay_value);
+    break;
+    }
+    
+    case 3: {
+    TM_SSD1306_Fill(0); //clear oled 
+    TM_SSD1306_GotoXY(10,15);
+    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
+    TM_SSD1306_DrawCircle(44, 50, 3, 1);
+    TM_SSD1306_DrawCircle(64, 50, 3, 1);
+    TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
+    TM_SSD1306_UpdateScreen(); //display
+    HAL_Delay(delay_value);
+    break;
+    }
+  }
   
 }
 
@@ -167,13 +181,44 @@ void display_temp(float data_temp) {
     }
     else {
       uint8_t buf[16];
-      sprintf(buf, "Temp: %.2F", data_temp);
-      TM_SSD1306_Fill(0); //clear oled
-      TM_SSD1306_GotoXY(10,15);
-      TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-      TM_SSD1306_UpdateScreen(); //display
+      if (data_temp >= 37.5) {
+        sprintf(buf, "Temp: %.1F", data_temp);
+        TM_SSD1306_Fill(0); //clear oled
+        TM_SSD1306_GotoXY(10,15);
+        TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+        
+        TM_SSD1306_GotoXY(35,40);
+        TM_SSD1306_Puts("ALERT!", &TM_Font_11x18, 1);
+        TM_SSD1306_UpdateScreen(); //display
+        
+        printf("Measured temp: %.2F\n\n", data_temp);
+        printf(" *===   ALERT!   ===*\n\n");
+      } else {
+        sprintf(buf, "Temp: %.1F", data_temp);
+        TM_SSD1306_Fill(0); //clear oled
+        TM_SSD1306_GotoXY(10,15);
+        TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+        TM_SSD1306_UpdateScreen(); //display
+        printf("Measured temp: %.2F\n\n", data_temp);
+      }
+//      printf("\n");
     }
   }
+}
+
+float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
+  float data_temp = (float)(msb_temp << 8 | lsb_temp);
+  data_temp = (data_temp - 13658) / 50;
+  float adjusted_temp = 0.0;
+  //=== Here is the separating point between two calculation 
+  //=== NOT high temp alert-point!
+  if (data_temp >= 35.05) {
+    adjusted_temp = (1025 * data_temp) / (1000 - data_temp);
+  } 
+  else {
+    adjusted_temp = (283 * 21 * data_temp) / (100 * (21 + data_temp));
+  }
+  return adjusted_temp;
 }
 
 void process_error() {
@@ -193,7 +238,7 @@ void send_uart(float data_temp) {
   sprintf(buf, "Temp %.2F      ", data_temp);
 //  HAL_UART_Transmit(&huart6, (uint8_t*)&buf, sizeof(buf), 0xFFFF);
 //  HAL_UART_Transmit(&huart6, (uint8_t*)"              \r\n", sizeof(buf), 0xFFFF);
-//  printf("data1 %4.2F \n", data_temp);
+//  printf("data %4.2F \n", data_temp);
 //  printf("data %s \n", buf);
 }
 
@@ -266,10 +311,11 @@ int main(void)
   
   SSD1306_OFF();
   
-  uint16_t data1 = 0;
-  float data1_fl = 0.0;
+  uint16_t data = 0;
+  float data_fl = 0.0;
   float max_data = 0.0;
   uint8_t Err = 0;
+  uint8_t measure_counter = 0;
   
   int8_t i2c_adr = 0xB4;
   uint32_t mem_adr = 0x07;
@@ -300,30 +346,40 @@ int main(void)
       //=== Display the Temp while button is pressed
       if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-//        printf("data1 %4.2F \n", data1_fl);
+//        printf("data %4.2F \n", data_fl);
+        printf("=== %d ===\n", measure_counter++);
+        printf("Button pressed\n");
         
-        int delay = 4;
-        while ((--delay > 0)) {
+        int delay = 6;
+        while ((--delay >= 0)) {
           //=== Read data from sensor via I2C
           Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 10);
   //        HAL_Delay(50);
           
           //=== Check if there is no error in I2C read
           if (Err == HAL_OK) {
-            data1 = (in_buff[1] << 8 | in_buff[0]); 
-            data1_fl = (float)(data1 - 13658) / 50;
-            if (max_data < data1_fl) {
-              max_data = data1_fl;
+//            data = (in_buff[1] << 8 | in_buff[0]); 
+//            data_fl = (float)(data - 13658) / 50;
+            data_fl = adjust_temp(in_buff[1], in_buff[0]);
+            printf("%.2F\n", data_fl);
+            if (max_data < data_fl) {
+              max_data = data_fl;
             }
           }
           else {
             process_error();
           }
-            
-          measuring_animation(); 
+          uint8_t pos = (5 - delay)/2 + 1; 
+          measuring_animation(pos); 
         }
         
         //=== Print temperature in terminal and oled-display
+        HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr - 1, 1, in_buff, 3, 100);
+        data = (in_buff[1] << 8 | in_buff[0]); 
+        data_fl = (float)(data - 13658) / 50;
+        
+        printf("Ta: %.2F\n", data_fl);
+        
         display_temp(max_data);
         max_data = 0.0;
         HAL_Delay(2000);
