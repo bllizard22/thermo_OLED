@@ -181,27 +181,42 @@ void display_temp(float data_temp) {
     }
     else {
       uint8_t buf[16];
-      if (data_temp >= 37.5) {
-        sprintf(buf, "Temp: %.1F", data_temp);
-        TM_SSD1306_Fill(0); //clear oled
-        TM_SSD1306_GotoXY(10,15);
-        TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-        
-        TM_SSD1306_GotoXY(35,40);
-        TM_SSD1306_Puts("ALERT!", &TM_Font_11x18, 1);
-        TM_SSD1306_UpdateScreen(); //display
-        
-        printf("Measured temp: %.2F\n\n", data_temp);
-        printf(" *===   ALERT!   ===*\n\n");
-      } else {
-        sprintf(buf, "Temp: %.1F", data_temp);
+      if (data_temp < 34.5) {
+        sprintf(buf, "Temp: Low", data_temp);
         TM_SSD1306_Fill(0); //clear oled
         TM_SSD1306_GotoXY(10,15);
         TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
         TM_SSD1306_UpdateScreen(); //display
-        printf("Measured temp: %.2F\n\n", data_temp);
       }
-//      printf("\n");
+      else
+        if (data_temp > 43.0) {
+          sprintf(buf, "Temp: High", data_temp);
+          TM_SSD1306_Fill(0); //clear oled
+          TM_SSD1306_GotoXY(10,15);
+          TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+          TM_SSD1306_UpdateScreen(); //display
+        }
+        else  
+          if (data_temp >= 37.5) {
+              sprintf(buf, "Temp: %.1F", data_temp);
+              TM_SSD1306_Fill(0); //clear oled
+              TM_SSD1306_GotoXY(10,15);
+              TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+              
+              TM_SSD1306_GotoXY(35,40);
+              TM_SSD1306_Puts("ALERT!", &TM_Font_11x18, 1);
+              TM_SSD1306_UpdateScreen(); //display
+              
+//              printf("Measured temp: %.2F\n\n", data_temp);
+//              printf(" *===   ALERT!   ===*\n\n");
+            } else {
+              sprintf(buf, "Temp: %.1F", data_temp);
+              TM_SSD1306_Fill(0); //clear oled
+              TM_SSD1306_GotoXY(10,15);
+              TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
+              TM_SSD1306_UpdateScreen(); //display
+//              printf("Measured temp: %.2F\n\n", data_temp);
+        }
     }
   }
 }
@@ -209,6 +224,7 @@ void display_temp(float data_temp) {
 float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
   float data_temp = (float)(msb_temp << 8 | lsb_temp);
   data_temp = (data_temp - 13658) / 50;
+  printf("Max%.3F\n", data_temp);
   float adjusted_temp = 0.0;
   //=== Here is the separating point between two calculation 
   //=== NOT high temp alert-point!
@@ -255,10 +271,10 @@ void set_new_addr(int8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
   for (uint8_t i=new_adr-2; i<=new_adr+2; i++){
     HAL_Delay(50);
     Err = HAL_I2C_Mem_Read(&hi2c1, i<<1, mem_adr, 1, in_buff, 4, 100);
-    if (Err == HAL_OK)
-      printf("Done!\n");
-    else
-      printf("%i\n", i);
+//    if (Err == HAL_OK)
+//      printf("Done!\n");
+//    else
+//      printf("%i\n", i);
   }
 }
 /* USER CODE END 0 */
@@ -344,11 +360,11 @@ int main(void)
     else {
 //      display_temp(0.0);
       //=== Display the Temp while button is pressed
-      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET) {
+      if (GPIO_PIN_SET == GPIO_PIN_SET) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 //        printf("data %4.2F \n", data_fl);
-        printf("=== %d ===\n", measure_counter++);
-        printf("Button pressed\n");
+//        printf("=== %d ===\n", measure_counter++);
+//        printf("Button pressed\n");
         
         int delay = 6;
         while ((--delay >= 0)) {
@@ -361,7 +377,7 @@ int main(void)
 //            data = (in_buff[1] << 8 | in_buff[0]); 
 //            data_fl = (float)(data - 13658) / 50;
             data_fl = adjust_temp(in_buff[1], in_buff[0]);
-            printf("%.2F\n", data_fl);
+//            printf("%.2F\n", data_fl);
             if (max_data < data_fl) {
               max_data = data_fl;
             }
@@ -378,9 +394,10 @@ int main(void)
         data = (in_buff[1] << 8 | in_buff[0]); 
         data_fl = (float)(data - 13658) / 50;
         
-        printf("Ta: %.2F\n", data_fl);
+//        printf("Ta: %.2F\n", data_fl);
         
         display_temp(max_data);
+        printf("\n");
         max_data = 0.0;
         HAL_Delay(2000);
   //      display_temp(0.0);
