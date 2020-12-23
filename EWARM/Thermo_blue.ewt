@@ -1196,6 +1196,9 @@
         <group>
             <name>User</name>
             <file>
+                <name>$PROJ_DIR$\..\Src\dwt_delay.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\gpio.c</name>
             </file>
             <file>
@@ -1209,6 +1212,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_it.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\tim.c</name>
             </file>
         </group>
     </group>

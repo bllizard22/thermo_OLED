@@ -21,13 +21,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "tim.h"
 #include "gpio.h"
-
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "ssd1306.h"
-#include "oled.h"
+#include <stdio.h>
+#include "dwt_delay.h"
+
+#define TRIG_PIN GPIO_PIN_6
+#define TRIG_PORT GPIOA
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,223 +61,236 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//=== CRC ===//
-//uint8_t crc_8(uint8_t inCrc, uint8_t inData)
-//{
-//  uint8_t i;
-//  uint8_t data;
-//  data = inCrc ^ inData;
-//  for ( i = 0; i < 8; i++ )
-//  {
-//    if (( data & 0x80 ) != 0 )
-//    {
-//      data <<= 1;
-//      data ^= 0x07;
-//    }
-//    else
-//    {
-//      data <<= 1;
-//    }
-//  }
-//  return data;
-//}
-//
-//uint8_t crc(uint8_t *Data)
-//{
-//  uint8_t data = crc_8(0, *Data++);
-//  data = crc_8(data, *Data++);
-//  data = crc_8(data, *Data);
-//  return data;
-//}
 
-void loading_animation() {
-  
-  uint16_t delay_value = 300;
-  
-  SSD1306_ON();  
-  
-  TM_SSD1306_Fill(0); //clear oled  
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
-  TM_SSD1306_DrawCircle(64, 50, 3, 1);
-  TM_SSD1306_DrawCircle(84, 50, 3, 1);
-  TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(delay_value);
-  
-  TM_SSD1306_Fill(0); //clear oled  
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_DrawCircle(44, 50, 3, 1);
-  TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
-  TM_SSD1306_DrawCircle(84, 50, 3, 1);
-  TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(delay_value);
-  
-  TM_SSD1306_Fill(0); //clear oled  
-  TM_SSD1306_GotoXY(10,15);
-  TM_SSD1306_DrawCircle(44, 50, 3, 1);
-  TM_SSD1306_DrawCircle(64, 50, 3, 1);
-  TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
-  TM_SSD1306_UpdateScreen(); //display
-  HAL_Delay(delay_value);
-  
-  
-}
+//=== HC-SR04 ===//
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+uint8_t Is_First_Captured = 0;  // is the first value captured ?
+uint16_t Distance  = 0;
 
-void measuring_animation(uint8_t pos) {
-  
-  uint16_t delay_value = 210;
-  
-  switch (pos){
-    case 1: {
-    TM_SSD1306_Fill(0); //clear oled
-    TM_SSD1306_GotoXY(10,15);
-    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-    TM_SSD1306_DrawFilledCircle(44, 50, 5, 1);
-    TM_SSD1306_DrawCircle(64, 50, 3, 1);
-    TM_SSD1306_DrawCircle(84, 50, 3, 1);
-    TM_SSD1306_UpdateScreen(); //display 
-    SSD1306_ON();
-    HAL_Delay(delay_value);
-    break;
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)  // if the interrupt source is channel1
+  {
+    if (Is_First_Captured==0) // if the first value is not captured
+    {
+      IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
+      Is_First_Captured = 1;  // set the first captured as true
+      // Now change the polarity to falling edge
+      __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
     }
-    
-    case 2: {
-    TM_SSD1306_Fill(0); //clear oled
-    TM_SSD1306_GotoXY(10,15);
-    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-    TM_SSD1306_DrawCircle(44, 50, 3, 1);
-    TM_SSD1306_DrawFilledCircle(64, 50, 5, 1);
-    TM_SSD1306_DrawCircle(84, 50, 3, 1);
-    TM_SSD1306_UpdateScreen(); //display
-    HAL_Delay(delay_value);
-    break;
-    }
-    
-    case 3: {
-    TM_SSD1306_Fill(0); //clear oled 
-    TM_SSD1306_GotoXY(10,15);
-    TM_SSD1306_Puts("Temp:", &TM_Font_11x18, 1);
-    TM_SSD1306_DrawCircle(44, 50, 3, 1);
-    TM_SSD1306_DrawCircle(64, 50, 3, 1);
-    TM_SSD1306_DrawFilledCircle(84, 50, 5, 1);
-    TM_SSD1306_UpdateScreen(); //display
-    HAL_Delay(delay_value);
-    break;
-    }
-  }
-  
-}
 
-void display_temp(float data_temp) {
-  if (data_temp == 0.0) {
-    TM_SSD1306_Fill(0); //clear oled
-    TM_SSD1306_GotoXY(10,15);
-    TM_SSD1306_Puts("Temp: ", &TM_Font_11x18, 1);
-    TM_SSD1306_UpdateScreen(); //display
-  }
-  else {
-    if (data_temp == -1.0) {
-      TM_SSD1306_Fill(0); //clear oled
-      TM_SSD1306_GotoXY(10,15);
-      TM_SSD1306_Puts("Temp:  Err", &TM_Font_11x18, 1);
-      TM_SSD1306_UpdateScreen(); //display
-    }
-    else {
-      uint8_t buf[16];
-      if (data_temp < 34.5) {
-        sprintf(buf, "Temp: Low", data_temp);
-        TM_SSD1306_Fill(0); //clear oled
-        TM_SSD1306_GotoXY(10,15);
-        TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-        TM_SSD1306_UpdateScreen(); //display
+    else if (Is_First_Captured==1)   // if the first is already captured
+    {
+      IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
+      __HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+
+      if (IC_Val2 > IC_Val1)
+      {
+        Difference = IC_Val2-IC_Val1;
       }
-      else
-        if (data_temp > 43.0) {
-          sprintf(buf, "Temp: High", data_temp);
-          TM_SSD1306_Fill(0); //clear oled
-          TM_SSD1306_GotoXY(10,15);
-          TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-          TM_SSD1306_UpdateScreen(); //display
-        }
-        else  
-          if (data_temp >= 37.5) {
-              sprintf(buf, "Temp: %.1F", data_temp);
-              TM_SSD1306_Fill(0); //clear oled
-              TM_SSD1306_GotoXY(10,15);
-              TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-              
-              TM_SSD1306_GotoXY(35,40);
-              TM_SSD1306_Puts("ALERT!", &TM_Font_11x18, 1);
-              TM_SSD1306_UpdateScreen(); //display
-              
-//              printf("Measured temp: %.2F\n\n", data_temp);
-//              printf(" *===   ALERT!   ===*\n\n");
-            } else {
-              sprintf(buf, "Temp: %.1F", data_temp);
-              TM_SSD1306_Fill(0); //clear oled
-              TM_SSD1306_GotoXY(10,15);
-              TM_SSD1306_Puts(buf, &TM_Font_11x18, 1);
-              TM_SSD1306_UpdateScreen(); //display
-//              printf("Measured temp: %.2F\n\n", data_temp);
-        }
+
+      else if (IC_Val1 > IC_Val2)
+      {
+        Difference = (0xFFFF - IC_Val1) + IC_Val2;
+      }
+
+      //Distance = Difference * .034/2;
+//      Distance = Difference / 58.8 * 2;
+      if ((Difference / 58.8 * 2) >= 390) {
+    	  Distance = 0;
+      } else {
+    	  Distance = Difference / 58.8 * 2;
+      }
+      Is_First_Captured = 0; // set it back to false
+
+      // set polarity to rising edge
+      __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+      __HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC1);
+//      printf("Val1 %d\n", IC_Val1);
+//      printf("Val2 %d\n", IC_Val2);
     }
   }
+}
+
+void HCSR04_Read(void)
+{
+  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin HIGH
+  DWT_Delay(2);  // wait for 2 us
+
+  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
+  DWT_Delay(10);  // wait for 10 us
+  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
+
+  __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_CC1);
+}
+
+//=== CRC ===//
+uint8_t crc_8(uint8_t inCrc, uint8_t inData)
+{
+  uint8_t i;
+  uint8_t data;
+  data = inCrc ^ inData;
+  for ( i = 0; i < 8; i++ )
+  {
+    if (( data & 0x80 ) != 0 )
+    {
+      data <<= 1;
+      data ^= 0x07;
+    }
+    else
+    {
+      data <<= 1;
+    }
+  }
+  return data;
+}
+
+uint8_t crc(uint8_t *Data)
+{
+  uint8_t data = crc_8(0, *Data++);
+  data = crc_8(data, *Data++);
+  data = crc_8(data, *Data);
+  return data;
 }
 
 float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
   float data_temp = (float)(msb_temp << 8 | lsb_temp);
   data_temp = (data_temp - 13658) / 50;
-  printf("Max%.3F\n", data_temp);
+  //printf("Max %.3F\n", data_temp);
   float adjusted_temp = 0.0;
-  //=== Here is the separating point between two calculation 
+  adjusted_temp = data_temp;
+  //=== Here is the separating point between two calculation
   //=== NOT high temp alert-point!
-  if (data_temp >= 35.05) {
-    adjusted_temp = (1025 * data_temp) / (1000 - data_temp);
-  } 
-  else {
-    adjusted_temp = (283 * 21 * data_temp) / (100 * (21 + data_temp));
-  }
+//  if (data_temp >= 35.05) {
+//    adjusted_temp = (1025 * data_temp) / (1000 - data_temp);
+//  }
+//  else {
+//    adjusted_temp = (283 * 21 * data_temp) / (100 * (21 + data_temp));
+//  }
   return adjusted_temp;
 }
 
-void process_error() {
-  
-  //=== Print "Err" instead temp
-//  printf("Error!\n ");
-  display_temp(-1.0);
-//  HAL_UART_Transmit(&huart6, (uint8_t*)"Error!", 6, 0xFFFF);
-  
-  HAL_I2C_DeInit(&hi2c1);
-  HAL_Delay(150);
-  MX_I2C1_Init();
+
+void Array_sort(uint16_t *array , uint16_t amount)
+{
+    // declare some local variables
+    uint16_t i=0 , j=0 , temp=0;
+
+    for(i=0 ; i<amount ; i++)
+    {
+        for(j=0 ; j<amount-1 ; j++)
+        {
+            if(array[j]>array[j+1])
+            {
+                temp        = array[j];
+                array[j]    = array[j+1];
+                array[j+1]  = temp;
+            }
+        }
+    }
 }
 
-void send_uart(float data_temp) {
-  uint8_t buf[16];
-  sprintf(buf, "Temp %.2F      ", data_temp);
+/*
+// function to calculate the median of the array
+float Find_median(uint32_t array[] , uint16_t amount)
+{
+    float median=0;
+
+    // if number of elements are even
+    if(amount%2 == 0)
+        median = (array[(amount-1)/2] + array[amount/2])/2.0;
+    // if number of elements are odd
+    else
+        median = array[amount/2];
+
+    return median;
+}
+*/
+
+uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
+uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
+uint32_t mem_adr = 0x07;
+uint8_t in_buff[0x04];
+uint8_t Err = 0;
+float data_fl = 0.0;
+
+float calibrate_ambient(uint8_t i2c_adr) {
+  uint16_t cycles_value = 1;
+  uint16_t avr_array[1]; // = cycles_value
+  uint16_t amount = 0;
+  uint32_t sum = 0;
+  uint16_t ambient_array[50];
+
+  for (uint8_t cycle=0; cycle < cycles_value; cycle++){
+    for (uint32_t i=0; i < 50; i++) {
+      Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 50);
+      if (Err == HAL_OK) {
+        data_fl = adjust_temp(in_buff[1], in_buff[0]);
+//        printf("%.2F\n", data_fl);
+        ambient_array[amount] = (uint32_t)(data_fl*100);
+        amount++;
+      }
+      HAL_Delay(40);
+    }
+
+    Array_sort(ambient_array, amount);
+    sum = 0;
+    for (uint8_t pos=0; pos<amount; pos++) {
+      sum += ambient_array[pos];
+    }
+    uint16_t avr_ambient_temp = sum / amount;
+//    printf("AVR = %d\n", avr_ambient_temp);
+    avr_array[cycle] = avr_ambient_temp;
+    amount = 0;
+  }
+
+  sum = 0;
+  for (uint8_t pos=0; pos < cycles_value; pos++) {
+      sum += avr_array[pos];
+//      printf("Ambient AVR = %d\n", avr_array[pos]);
+    }
+  uint16_t avr_ambient_temp = sum / cycles_value;
+
+//  printf("Final AVR = %d\n", avr_ambient_temp);
+//  printf("Ambient %d, %d...\n", ambient_array[2], ambient_array[3]);
+
+  return ((float)avr_ambient_temp / 100);
+}
+
+//void send_uart(float data_temp) {
+//  uint8_t buf[16];
+//  sprintf(buf, "Temp %.2F      ", data_temp);
 //  HAL_UART_Transmit(&huart6, (uint8_t*)&buf, sizeof(buf), 0xFFFF);
 //  HAL_UART_Transmit(&huart6, (uint8_t*)"              \r\n", sizeof(buf), 0xFFFF);
 //  printf("data %4.2F \n", data_temp);
 //  printf("data %s \n", buf);
-}
+//}
 
-void set_new_addr(int8_t new_adr, int32_t mem_adr, uint8_t *in_buff) 
+void set_new_addr(uint8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
 {
-  uint8_t Err = 0;
+//  uint8_t Err = 0;
+  uint8_t start_adr = new_adr - 4;
+  uint8_t stop_adr = new_adr + 4;
   uint8_t buff[4] = {0x2E, 0x00, 0x00};
   buff[3] = crc(buff);
   HAL_I2C_Master_Transmit(&hi2c1, 0x00, buff, 4, 100);
   HAL_Delay(10);
   uint8_t buff2[4] = {0x2E, new_adr, 0x00};
+  printf("\n\n new_adr = %X\n\n", new_adr);
+  printf("\n\n start_adr = %X\n\n", start_adr);
+  printf("\n\n stop_adr = %X\n\n", stop_adr);
+  printf("\n\n");
   buff2[3] = crc(buff2);
   HAL_I2C_Master_Transmit(&hi2c1, 0x00, buff2, 4, 100);
-  for (uint8_t i=new_adr-2; i<=new_adr+2; i++){
+  for (uint16_t i=start_adr; i<=stop_adr; i++){
     HAL_Delay(50);
     Err = HAL_I2C_Mem_Read(&hi2c1, i<<1, mem_adr, 1, in_buff, 4, 100);
-//    if (Err == HAL_OK)
-//      printf("Done!\n");
-//    else
-//      printf("%i\n", i);
+    if (Err == HAL_OK)
+      printf("Done! %X\n\n", i);
+    else
+      printf("No\n\n");
   }
 }
 /* USER CODE END 0 */
@@ -283,6 +299,7 @@ void set_new_addr(int8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
   * @brief  The application entry point.
   * @retval int
   */
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -295,6 +312,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  DWT_Init();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -302,121 +320,146 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   // --- Achtung! --- Reset the I2C before use! Bug in STM32F100 !!!
-  __HAL_RCC_I2C1_CLK_ENABLE();
-  HAL_Delay(100);
-  __HAL_RCC_I2C1_FORCE_RESET();
-  HAL_Delay(100);
-  __HAL_RCC_I2C1_RELEASE_RESET();
-  HAL_Delay(100);
+    __HAL_RCC_I2C1_CLK_ENABLE();
+    HAL_Delay(100);
+    __HAL_RCC_I2C1_FORCE_RESET();
+    HAL_Delay(100);
+    __HAL_RCC_I2C1_RELEASE_RESET();
+    HAL_Delay(100);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  printf("======= 000 =======\n\n");
+  int iii = 5;
+
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
   HAL_Delay(300);
-  uint8_t res = TM_SSD1306_Init();
-//  printf("OLED init: %d\n", res);
-  
-  
-  //=== Loop loading animation several times
-  int counter = 3;
-  while (--counter > 0) {
-    loading_animation();
-  }
-  
-  SSD1306_OFF();
-  
+
   uint16_t data = 0;
-  float data_fl = 0.0;
+
+  float ambient_avr[6];
   float max_data = 0.0;
-  uint8_t Err = 0;
-  uint8_t measure_counter = 0;
-  
-  int8_t i2c_adr = 0xB4;
+  float float_max_data = 30.0;
+  float float_amb_data = 30.0;
+  float diff_float_data = 3.0;
+
+  int new_max_data = 3000;
+  int ambient_data = 3000;
+  int diff_data = 3000;
+  int data_val = 0;
+  int data_dec = 0;
+
+//  int8_t Err = 0;
+  uint32_t measure_counter = 0;
+
+//  uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
+  uint8_t bar_sensors[6] = {0xA2, 0xB2, 0xA4, 0xB4, 0xA6, 0xB6};
+  uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
   uint32_t mem_adr = 0x07;
   uint8_t in_buff[0x04];
-  
-  uint16_t activity_flag = 100;
-  
-  //=== Set new_adr as new I2C address
-//  int8_t new_adr = 0xB4;
-//  set_new_addr(new_adr, mem_adr, in_buff)
-  
+
+//=== Set new_adr as new I2C address
+//  uint8_t new_adr = i2c_adr;
+//  set_new_addr(new_adr>>1, mem_adr, in_buff);
+
+//=== Temp calibration
+//  HAL_Delay(500);
+  for (int i=0; i < 6; i++) {
+    ambient_avr[i] = calibrate_ambient(bar_sensors[i]);
+    printf("At 0x%X ambient_avr = %.2F\n", bar_sensors[i], ambient_avr[i]);
+  }
+
+  float sum = 0;
+  for (uint8_t pos=0; pos < 6; pos++) {
+      sum += ambient_avr[pos];
+//      printf("sum = ambient_avr = %.2F\n", ambient_avr[pos]);
+    }
+
+  float avr_ambient_temp = sum / 6;
+  printf("\nGlobal Ambient AVR = %.2F\n", avr_ambient_temp);
+
+    for (uint8_t pos=0; pos < 6; pos++) {
+      printf("Disp: %.2F\n", ambient_avr[pos] - avr_ambient_temp);
+    }
+    printf("\n");
+    float_max_data = 31.5;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+          /*iii++;
+      //=== Read data from HC-SR04
+          HCSR04_Read();
+          printf("Distance = %d\n", Distance);*/
+
+//    printf("=== %d ===\n", measure_counter++);
+    for (uint8_t i=2; i<4; i++) {
+//    for (uint8_t i=1; i<5; i++) {
     //=== Read data from sensor via I2C
-    Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 100);
-    HAL_Delay(100);
-        
+        Err = HAL_I2C_Mem_Read(&hi2c1, bar_sensors[i], mem_adr, 1, in_buff, 3, 50);
+        HAL_Delay(5); // Delay for I2C responce
+
     //=== Check if there is no error in I2C read
-    if (Err != HAL_OK) {
-      process_error();
-    }
-    else {
-//      display_temp(0.0);
-      //=== Display the Temp while button is pressed
-      if (GPIO_PIN_SET == GPIO_PIN_SET) {
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-//        printf("data %4.2F \n", data_fl);
-//        printf("=== %d ===\n", measure_counter++);
-//        printf("Button pressed\n");
-        
-        int delay = 6;
-        while ((--delay >= 0)) {
-          //=== Read data from sensor via I2C
-          Err = HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, in_buff, 3, 10);
-  //        HAL_Delay(50);
-          
+        if (Err == HAL_OK) {
+
           //=== Check if there is no error in I2C read
-          if (Err == HAL_OK) {
-//            data = (in_buff[1] << 8 | in_buff[0]); 
-//            data_fl = (float)(data - 13658) / 50;
-            data_fl = adjust_temp(in_buff[1], in_buff[0]);
-//            printf("%.2F\n", data_fl);
-            if (max_data < data_fl) {
-              max_data = data_fl;
-            }
-          }
-          else {
-            process_error();
-          }
-          uint8_t pos = (5 - delay)/2 + 1; 
-          measuring_animation(pos); 
-        }
-        
-        //=== Print temperature in terminal and oled-display
-        HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr - 1, 1, in_buff, 3, 100);
-        data = (in_buff[1] << 8 | in_buff[0]); 
-        data_fl = (float)(data - 13658) / 50;
-        
-//        printf("Ta: %.2F\n", data_fl);
-        
-        display_temp(max_data);
-        printf("\n");
-        max_data = 0.0;
-        HAL_Delay(2000);
-  //      display_temp(0.0);
-        activity_flag = 100;
-      }
-      else {
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-        if (activity_flag == 0) {
-          SSD1306_OFF();
+              data_fl = adjust_temp(in_buff[1], in_buff[0]);
+              
+          //=== Check if temp close to ambient
+//              if ((data_fl <= (avr_ambient_temp * 1.005)) & (data_fl >= (avr_ambient_temp * 0.995))) {
+//                data_fl = avr_ambient_temp;
+//              }
+              
+          //=== Set the value from sensor with max temp
+              if (max_data < data_fl) {
+                  max_data = data_fl;
+              }
+//              float_max_data = max_data;
+
+          //=== Print temperature in terminal
+              //		  printf("    Adj %.2F\n", data_fl);
+//              printf("%X;%.2F\n", bar_sensors[i], data_fl);
+                printf("%.2F;", data_fl);
+
+//              new_max_data = (int)(data_fl*100);
+//              printf("    NewAdj ==%d==\n\n", new_max_data);
+
+
+          //=== Read ambient Temp - Ta
+              HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr - 1, 1, in_buff, 3, 100);
+              data_fl = adjust_temp(in_buff[1], in_buff[0]);
+              ambient_data = (int)(data_fl*100);
+              diff_data = float_max_data - ambient_data;
+              float_amb_data = data_fl;
+              //        printf("Ta: %.2F\n", data_fl);
+
+//			  float_max_data = max_data;
+//			  diff_float_data = float_max_data - float_amb_data;
+
         }
         else {
-          activity_flag--;
-//          printf("Activity timer: %d\n", activity_flag);
+              printf("\nError on I2C. Address %X\n", bar_sensors[i]);
         }
-      }  
+//        HAL_Delay(20); 
     }
+    printf("\n");
+    float_max_data = max_data;
+    diff_float_data = float_max_data - float_amb_data;
+    new_max_data = (int)(max_data*100);
+//    printf("\n");
+//    printf("-%d- MaxAdj ==%.2F==\n", measure_counter++, max_data);
+//    printf("%.2F\n", max_data);
+    max_data = 0.0;
   }
-    
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
@@ -447,7 +490,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {

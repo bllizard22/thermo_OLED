@@ -1,0 +1,10 @@
+main.c:73:6:HAL_TIM_IC_CaptureCallback	24	static
+main.c:113:6:HCSR04_Read	8	static
+main.c:126:9:crc_8	0	static
+main.c:146:9:crc	8	static
+main.c:289:7:adjust_temp	16	static
+main.c:319:6:send_uart	24	static
+main.c:328:6:set_new_addr	64	static
+main.c:547:6:SystemClock_Config	72	static
+main.c:356:5:main	64	static
+main.c:585:6:Error_Handler	0	static
