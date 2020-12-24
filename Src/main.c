@@ -50,6 +50,226 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint8_t len = 0;
+uint8_t value_read[6][2];
+uint8_t value_read1[2];
+uint16_t regist = 0;
+uint8_t uart_buff[32];
+uint8_t uart_buff1[32];
+float fl_temperature[6];
+int i = 0;
+uint8_t transmitData[15];
+
+uint8_t transmitData1[364];
+float flTemperatureSum = 0;
+float flTemperatureAverage = 0;
+float flTemperatureAverage1 = 0;
+float lenf = 0.0;
+
+uint32_t timer;
+uint16_t timeToSend = 0;
+uint16_t j = 0;
+
+uint16_t value_readHigh = 0;
+uint16_t value_readLow = 0;
+uint8_t value_readHigh_aver = 0;
+uint8_t value_readLow_aver = 0;
+float fl_mlx_temp_aver = 0;
+uint8_t stateAver = 0;
+uint16_t k = 0;
+uint8_t kk = 0;
+float tt[190];
+float fl_temperatureA = 0.0;
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+//void SystemClock_Config(void);
+//static void MX_GPIO_Init(void);
+//static void MX_DMA_Init(void);
+//static void MX_I2C1_Init(void);
+//static void MX_USART6_UART_Init(void);
+//static void MX_USART1_UART_Init(void);
+///* USER CODE BEGIN PFP */
+//float moving_average(float a, float *buff1, float *buff2, int N) {
+//  float summ_buff_obj_temp = 0;
+//
+//  //buff_obj_temp1[0] = a;
+//  buff1[0] = a;
+//
+//  for (uint8_t u = 0; u < N; u++) {
+//    summ_buff_obj_temp = summ_buff_obj_temp + buff1[u];
+//  }
+//  float f_t_obj = summ_buff_obj_temp / N;
+//  float t_obj = f_t_obj;
+//  for (uint8_t u = 0; u < N - 1; u++) {
+//    buff2[u + 1] = buff1[u];
+//
+//  }
+//  for (uint8_t u = 0; u < N; u++) {
+//    buff1[u] = buff2[u];
+//
+//  }
+//  return t_obj;
+//}
+////================================
+//void temp1(){
+//   //???? ?????? ??-???????? ? ????????
+//     for(int i = 0; i<6; i++){
+//
+//
+//              fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
+//              HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, value_read[i], 3, 50);
+//
+//              HAL_Delay(10);
+//            flTemperatureSum = flTemperatureSum + fl_temperature[i];
+//
+//
+//      }
+//
+//      flTemperatureAverage = flTemperatureSum/6;
+//      flTemperatureSum = 0;
+//
+////      if(flTemperatureAverage>22){
+////        timer = 0;
+////        while(flTemperatureAverage>22){
+////          for(int i = 0; i<6; i++){
+////
+////
+////                    fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
+////
+////                    HAL_Delay(10);
+////                  flTemperatureSum = flTemperatureSum + fl_temperature[i];
+////
+////  k++;
+////            }
+////
+////
+////            flTemperatureAverage = flTemperatureSum/6;
+////           tt[k] = flTemperatureAverage;
+////
+////            flTemperatureSum = 0;
+////        }
+////      k = 0;
+////        timeToSend = timer;
+////      }
+//      fl_temperatureA = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(1), 0x06, value_read[i], 0x100);
+//}
+//
+////=====================================
+//void dataCollectByte(){
+//   //???? ?????? ??-???????? ?? ??????
+//     for(int i = 0; i<6; i++){
+//
+//
+//
+//            i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
+//            HAL_Delay(10);
+//
+//                transmitData[2*i+1] = value_read[i][0];
+//                transmitData[2*i+2] = value_read[i][1];
+//
+//          }
+//
+//             transmitData[0] = 's';
+//
+//             transmitData[14] = 'e';
+//             fl_temperatureA = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(1), 0x06, value_read1, 0x100);
+//
+//                HAL_Delay(10);
+//
+//                fl_temperatureA = fl_temperatureA*10;
+//                transmitData[13] = ((int)fl_temperatureA);
+//
+//             HAL_UART_Transmit_DMA(&huart1, (uint8_t*) transmitData, 15);
+//                            HAL_Delay(20);
+//}
+////==========================================
+//void lvProxsonar(){
+//   //========================================
+//      //????????? ??????? ??????????
+//      //======================================
+//               uint16_t temp_len = 0;
+//                uint8_t n_len = 0;
+//                 for(int j = 0; j<26; j++){
+//
+//                    if(uart_buff[j]=='R'&&uart_buff[j+5]=='P'){
+//
+//
+//                    temp_len = temp_len + ((uart_buff[j+1]-48)*100 + (uart_buff[j+2]-48)*10 + (uart_buff[j+3]-48));
+//
+//                      n_len++;
+//                  }
+//
+//                  }
+//
+//                 if(n_len) {
+//                   len = temp_len/n_len;
+//                   lenf = len*2.54;
+//                 }
+//                 if(len<255) transmitData[13] = len;
+//}
+//
+////threshold
+//void tempThreshold(uint8_t tempThreshold){
+//  for(int i = 0; i<6; i++){
+//
+//
+//                          //fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
+//                      i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
+//                      HAL_Delay(10);
+//
+//                            value_readHigh = value_readHigh + value_read[i][1];
+//                                    value_readLow = value_readLow + value_read[i][0];
+//
+//                }
+//
+//              value_readHigh_aver = value_readHigh/6;
+//              value_readLow_aver = value_readLow/6;
+//              fl_mlx_temp_aver = (value_readHigh_aver*256 + value_readLow_aver)*0.02 - 273.15;
+//              value_readHigh = 0;
+//              value_readLow = 0;
+//      if(fl_mlx_temp_aver>tempThreshold){
+//        timer = 0;
+//           stateAver = 1;
+//
+//       for(j = 0; j<30; j++){
+//
+//         //???? ?????? ??-???????? ?? ??????
+//          for(int i = 0; i<6; i++){
+//
+//
+//                      //fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
+//                  i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
+//                  HAL_Delay(10);
+//
+//                      transmitData1[2*i +1+ 12*j] = value_read[i][0];
+//                      transmitData1[2*i+2 + 12*j] = value_read[i][1];
+//                                value_readHigh = value_readHigh + value_read[i][1];
+//                                value_readLow = value_readLow + value_read[i][0];
+//
+//            }
+//           k++;
+//          value_readHigh_aver = value_readHigh/6;
+//          value_readLow_aver = value_readLow/6;
+//          fl_mlx_temp_aver = (value_readHigh_aver * 256 + value_readLow_aver)*0.02 - 273.15;
+//          value_readHigh = 0;
+//          value_readLow = 0;
+//          tt[k] = fl_mlx_temp_aver;
+//          if(fl_mlx_temp_aver<22&&stateAver==1){
+//            stateAver = 0;
+//            timeToSend = timer;
+//            kk = k;
+//          }
+//
+//        }
+//
+//           transmitData1[0] = 's';
+//           transmitData1[363] = 'e';
+//           transmitData1[361] = timer;
+//           transmitData1[362] = timer>>8;
+//
+//      }
+//}
 
 /* USER CODE END PV */
 
@@ -157,8 +377,11 @@ uint8_t crc(uint8_t *Data)
 
 float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
   float data_temp = (float)(msb_temp << 8 | lsb_temp);
+//  printf("msb %d\n", msb_temp);
+//  printf("msb %d\n", lsb_temp);
+//  printf("ADJ before %.4F\n", data_temp);
   data_temp = (data_temp - 13658) / 50;
-  //printf("Max %.3F\n", data_temp);
+//  printf("ADJ %.4F\n", data_temp);
   float adjusted_temp = 0.0;
   adjusted_temp = data_temp;
   //=== Here is the separating point between two calculation
@@ -172,6 +395,16 @@ float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
   return adjusted_temp;
 }
 
+float obtain_max_temp(uint16_t *log_array, uint16_t log_array_size){
+  uint16_t max_value = 0;
+  for (int i=0; i < log_array_size; i++) {
+    if (log_array[i] > max_value) {
+      max_value = log_array[i];
+    }
+  }
+  printf("%d;Local Max;", max_value);
+  return ((float)max_value)/100;
+}
 
 void Array_sort(uint16_t *array , uint16_t amount)
 {
@@ -300,6 +533,7 @@ void set_new_addr(uint8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
   * @retval int
   */
 
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -334,31 +568,37 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   printf("======= 000 =======\n\n");
-  int iii = 5;
 
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
   HAL_Delay(300);
+  
+  uint8_t sensor_amount = 4;
 
-  uint16_t data = 0;
-
-  float ambient_avr[6];
-  float max_data = 0.0;
-  float float_max_data = 30.0;
-  float float_amb_data = 30.0;
-  float diff_float_data = 3.0;
-
-  int new_max_data = 3000;
-  int ambient_data = 3000;
-  int diff_data = 3000;
-  int data_val = 0;
-  int data_dec = 0;
-
-//  int8_t Err = 0;
+//  float ambient_avr[6];
+//  float max_data = 0.0;
+//  float float_max_data = 30.0;
+//  float float_amb_data = 30.0;
+//  float diff_float_data = 3.0;
+  float sum_data = 0;
+  
+  const uint16_t log_array_size = 300;
+  uint16_t log_array[300];
+  float log_buff[6];
+  float max_temp_on_sensor = 0;
+  uint16_t log_array_pos = 0;
+  
   uint32_t measure_counter = 0;
+
+//  int new_max_data = 3000;
+//  int ambient_data = 3000;
+//  int diff_data = 3000;
+//  int data_val = 0;
+//  int data_dec = 0;
+//  int8_t Err = 0;
 
 //  uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
   uint8_t bar_sensors[6] = {0xA2, 0xB2, 0xA4, 0xB4, 0xA6, 0xB6};
-  uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
+//  uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
   uint32_t mem_adr = 0x07;
   uint8_t in_buff[0x04];
 
@@ -366,27 +606,26 @@ int main(void)
 //  uint8_t new_adr = i2c_adr;
 //  set_new_addr(new_adr>>1, mem_adr, in_buff);
 
-//=== Temp calibration
+//=== Temp ambient calibration
 //  HAL_Delay(500);
-  for (int i=0; i < 6; i++) {
-    ambient_avr[i] = calibrate_ambient(bar_sensors[i]);
-    printf("At 0x%X ambient_avr = %.2F\n", bar_sensors[i], ambient_avr[i]);
-  }
-
-  float sum = 0;
-  for (uint8_t pos=0; pos < 6; pos++) {
-      sum += ambient_avr[pos];
-//      printf("sum = ambient_avr = %.2F\n", ambient_avr[pos]);
-    }
-
-  float avr_ambient_temp = sum / 6;
-  printf("\nGlobal Ambient AVR = %.2F\n", avr_ambient_temp);
-
-    for (uint8_t pos=0; pos < 6; pos++) {
-      printf("Disp: %.2F\n", ambient_avr[pos] - avr_ambient_temp);
-    }
-    printf("\n");
-    float_max_data = 31.5;
+//  for (int i=0; i < 6; i++) {
+//    ambient_avr[i] = calibrate_ambient(bar_sensors[i]);
+//    printf("At 0x%X ambient_avr = %.2F\n", bar_sensors[i], ambient_avr[i]);
+//  }
+//
+//  float sum = 0;
+//  for (uint8_t pos=0; pos < 6; pos++) {
+//      sum += ambient_avr[pos];
+////      printf("sum = ambient_avr = %.2F\n", ambient_avr[pos]);
+//    }
+//
+//  float avr_ambient_temp = sum / 6;
+//  printf("\nGlobal Ambient AVR = %.2F\n", avr_ambient_temp);
+//
+//  for (uint8_t pos=0; pos < 6; pos++) {
+//    printf("Disp: %.2F\n", ambient_avr[pos] - avr_ambient_temp);
+//  }
+//  printf("\n");
 
   /* USER CODE END 2 */
 
@@ -394,17 +633,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-          /*iii++;
       //=== Read data from HC-SR04
+      /*
           HCSR04_Read();
-          printf("Distance = %d\n", Distance);*/
+          printf("Distance = %d\n", Distance);
+      */
 
 //    printf("=== %d ===\n", measure_counter++);
-    for (uint8_t i=2; i<4; i++) {
-//    for (uint8_t i=1; i<5; i++) {
+    measure_counter++;
+    
+    for (uint8_t i=1; i<sensor_amount+1; i++) {
+      
     //=== Read data from sensor via I2C
-        Err = HAL_I2C_Mem_Read(&hi2c1, bar_sensors[i], mem_adr, 1, in_buff, 3, 50);
-        HAL_Delay(5); // Delay for I2C responce
+        Err = HAL_I2C_Mem_Read(&hi2c1, bar_sensors[i], mem_adr, 1, in_buff, 3, 0x100);
+        HAL_Delay(3); // Delay for I2C responce
 
     //=== Check if there is no error in I2C read
         if (Err == HAL_OK) {
@@ -418,26 +660,28 @@ int main(void)
 //              }
               
           //=== Set the value from sensor with max temp
-              if (max_data < data_fl) {
-                  max_data = data_fl;
-              }
+//              if (max_data < data_fl) {
+//                  max_data = data_fl;
+//              }
 //              float_max_data = max_data;
 
           //=== Print temperature in terminal
               //		  printf("    Adj %.2F\n", data_fl);
 //              printf("%X;%.2F\n", bar_sensors[i], data_fl);
-                printf("%.2F;", data_fl);
+//                printf("%.4F;", data_fl);
+              sum_data += data_fl;
+              log_buff[i] = data_fl;
 
 //              new_max_data = (int)(data_fl*100);
 //              printf("    NewAdj ==%d==\n\n", new_max_data);
 
 
           //=== Read ambient Temp - Ta
-              HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr - 1, 1, in_buff, 3, 100);
-              data_fl = adjust_temp(in_buff[1], in_buff[0]);
-              ambient_data = (int)(data_fl*100);
-              diff_data = float_max_data - ambient_data;
-              float_amb_data = data_fl;
+//              HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr - 1, 1, in_buff, 3, 100);
+//              data_fl = adjust_temp(in_buff[1], in_buff[0]);
+//              ambient_data = (int)(data_fl*100);
+//              diff_data = float_max_data - ambient_data;
+//              float_amb_data = data_fl;
               //        printf("Ta: %.2F\n", data_fl);
 
 //			  float_max_data = max_data;
@@ -449,14 +693,39 @@ int main(void)
         }
 //        HAL_Delay(20); 
     }
-    printf("\n");
-    float_max_data = max_data;
-    diff_float_data = float_max_data - float_amb_data;
-    new_max_data = (int)(max_data*100);
+    
+//=== Check for threshold after every sensor cycle
+    if ((sum_data / sensor_amount >= 25.6) 
+        && (log_array_pos +sensor_amount < log_array_size)) {
+      for (int i=0; i < sensor_amount; i++) {
+        log_array[log_array_pos+i] = (int)(log_buff[i]*100);
+//        printf("log %d   at pos %d\n", log_array[log_array_pos+i], log_array_pos+i);
+      }
+      log_array_pos += sensor_amount;
+    } 
+    else 
+    { 
+      if (log_array_pos >= 40) {
+        max_temp_on_sensor = obtain_max_temp(log_array, log_array_pos);
+//        printf("\n===== %0.3F = at %d===\n\n", max_temp_on_sensor, measure_counter);
+        printf("%0.3F;", max_temp_on_sensor);
+      }
+      log_array_pos = 0;
+    }
+    
+//    printf("%.4F\n", sum_data);
+    printf("%d;%.3F\n",measure_counter, sum_data / sensor_amount);
+    sum_data = 0;
+    
+    
+//    printf("\n");
+//    float_max_data = max_data;
+//    diff_float_data = float_max_data - float_amb_data;
+//    new_max_data = (int)(max_data*100);
 //    printf("\n");
 //    printf("-%d- MaxAdj ==%.2F==\n", measure_counter++, max_data);
 //    printf("%.2F\n", max_data);
-    max_data = 0.0;
+//    max_data = 0.0;
   }
     /* USER CODE END WHILE */
 
