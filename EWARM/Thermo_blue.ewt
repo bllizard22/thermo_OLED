@@ -1196,6 +1196,9 @@
         <group>
             <name>User</name>
             <file>
+                <name>$PROJ_DIR$\..\Src\can.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\dwt_delay.c</name>
             </file>
             <file>
@@ -1203,6 +1206,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\i2c.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\inbus.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\main.c</name>
@@ -1230,6 +1236,9 @@
             <name>STM32F1xx_HAL_Driver</name>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_can.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</name>
@@ -1271,17 +1280,5 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</name>
             </file>
         </group>
-    </group>
-    <group>
-        <name>ssd1306</name>
-        <file>
-            <name>$PROJ_DIR$\..\Src\fonts.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\oled.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Src\ssd1306.c</name>
-        </file>
     </group>
 </project>

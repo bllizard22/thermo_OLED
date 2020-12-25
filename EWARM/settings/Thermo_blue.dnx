@@ -14,13 +14,13 @@
     <StLinkDriver>
         <stlinkserialNo>44220967</stlinkserialNo>
         <stlinkfoundProbes />
-        <CStepIntDis>_ 0</CStepIntDis>
-        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>3</stlinkResetStrategy>
+        <CStepIntDis>_ 0</CStepIntDis>
+        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2114737519</Checksum>
+        <Checksum>2619521020</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -99,13 +99,6 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Bp0>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.526.3" 0 0 1 "" 0 "" 0</Bp0>
-        <Count>1</Count>
-    </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -115,14 +108,6 @@
         <LoggingEnabled>_ 1</LoggingEnabled>
         <LogFile>_ "$PROJ_DIR$\log_1.log"</LogFile>
     </TermIOLog>
-    <Aliases>
-        <A0>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c" ""</A0>
-        <A1>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c" "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c"</A1>
-        <A2>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_i2c.c" ""</A2>
-        <A3>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c" ""</A3>
-        <Count>4</Count>
-        <SuppressDialog>1</SuppressDialog>
-    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>3</Mode>
@@ -136,4 +121,18 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Count>0</Count>
+    </Breakpoints2>
+    <Aliases>
+        <A0>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c" ""</A0>
+        <A1>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c" "C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c"</A1>
+        <A2>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_i2c.c" ""</A2>
+        <A3>_ "C:\Users\n.kruchkov\Desktop\Projects\Thermo_blue\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c" ""</A3>
+        <Count>4</Count>
+        <SuppressDialog>1</SuppressDialog>
+    </Aliases>
 </settings>

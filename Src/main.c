@@ -78,159 +78,10 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-__no_init CAN_FilterTypeDef		sFilterConfig;
-__no_init CAN_TxHeaderTypeDef 	TxMsgHdr;
-__no_init CAN_RxHeaderTypeDef 	RxMsgHdr;
-//__no_init CAN_RxHeaderTypeDef 	RxMsgHdr2;
-__no_init char rx_msg_data[8];
-__no_init char tx_msg_data[8];
-uint32_t TxMailbox;
-//CanTxMsgTypeDef			TxMsg;
-//CanRxMsgTypeDef			RxMsg;
-//CanRxMsgTypeDef			RxMsg0;
-HAL_StatusTypeDef 		stat;
-//HAL_CAN_StateTypeDef 	can_stat;
-//uint32_t 				can_err;
-//char					is_transmit_ready;
-char can_receive_flag;
-
 CAN_TxHeaderTypeDef    TxHeader1;
-CAN_FilterTypeDef  sFilterConfig;
+//CAN_FilterTypeDef  sFilterConfig;
 uint32_t canFifoFulFil;
 //HAL_StatusTypeDef HAL_CAN_Transmit_IT(CAN_HandleTypeDef* hcan)
-
-void inbus_init( void )
-{
-//	//int i;
-//	CAN_FilterConfTypeDef  sFilterConfig;
-//
-//	// Clear devices list
-//	//memset( (void *)can_buf, 0, sizeof(can_buf) );
-//	memset( (void *)&rxbuf, 0, sizeof(rxbuf) );
-//	memset( (void *)&txbuf, 0, sizeof(txbuf) );
-//	
-//	// Init the CAN interface
-//	MX_CAN1_Init();
-//	// Reset CAN variables
-//	can_receive_flag = 0;
-//	can_rx_err_flag = can_tx_err_flag = HAL_OK;
-//	//ipos = opos = dnum = 0;
-//	is_can_transmit_ready = 1;
-//	// Initially setup TX message
-//	hcan.pTxMsg = &TxMsg0;
-//	hcan.pRxMsg = &RxMsg0;
-//	hcan.pTxMsg->StdId = INBUS_DEVICE_ID;
-//	hcan.pTxMsg->ExtId = 0x00;
-//	hcan.pTxMsg->RTR = CAN_RTR_DATA;
-//	hcan.pTxMsg->IDE = CAN_ID_STD;
-	// Configure the CAN Filter to receive all the packets
-	sFilterConfig.FilterBank = 0;
-	sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
-	sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
-	sFilterConfig.FilterIdHigh = 0;
-	sFilterConfig.FilterIdLow = 0x10;
-	sFilterConfig.FilterMaskIdHigh = 0x0000;
-	sFilterConfig.FilterMaskIdLow = 0x0000;
-	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	sFilterConfig.FilterActivation = ENABLE;
-	sFilterConfig.SlaveStartFilterBank = 14;
-	if( HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK ){
-		// Filter configuration Error
-		Error_Handler();
-	}
-	// Start the CAN interface
-	stat = HAL_CAN_Start( &hcan );
-	if( stat != HAL_OK ){
-		/* CAN start Error */
-		Error_Handler();
-	}
-	// Set the receiver notification
-	stat = HAL_CAN_ActivateNotification( &hcan, CAN_IT_RX_FIFO0_MSG_PENDING );
-	if( stat != HAL_OK ){
-		/* CAN Set notification Error */
-		Error_Handler();
-	}
-	// Start receiving
-	//HAL_CAN_Receive_IT( &hcan, CAN_FIFO0 );
-}
-//
-//void inbus_process( void )
-//{
-//	uint32_t val;
-//
-//	// Check for data received
-//	if( !can_receive_flag ){
-//		return;
-//	}
-//	can_receive_flag = 0;
-//	// Check for bus request
-//	switch( RxMsgHdr.StdId ){
-//		//	case INBUS_MASTER_ID:		// Device address request
-//		//		if( RxMsg.Data[0] == 0 && RxMsg.Data[1] == 0 ){
-//		//			hcan.pTxMsg->StdId = INBUS_MASTER_ID;
-//		//			hcan.pTxMsg->DLC = 2;
-//		//			*(uint16_t *)hcan.pTxMsg->Data = (uint16_t)INBUS_DEVICE_ID;
-//		//			if( is_transmit_ready ){
-//		//				is_transmit_ready = 0;
-//		//				stat =  HAL_CAN_Transmit_IT( &hcan );
-//		//			}
-//		//		}
-//		//		break;
-//	case INBUS_DEVICE_ID:	// Data request. Specific for every device type
-//		if( rx_msg_data[0] & 0x80 ){
-//			// Write the data
-//			val = (uint32_t)rx_msg_data[1] | ((uint32_t)rx_msg_data[2] << 8) | ((uint32_t)rx_msg_data[3] << 16) | ((uint32_t)rx_msg_data[4] << 24);
-//			gen_set_frequency( val & 0xFFFF );
-//			//printf("set %d\n", val );
-//		} else {
-//			// Read the data
-//			//			hcan.pTxMsg->StdId = INBUS_DEVICE_ID;
-//			//			hcan.pTxMsg->DLC = INBUS_FRAME_SIZE;
-//			TxMsgHdr.StdId = INBUS_DEVICE_ID;
-//			TxMsgHdr.ExtId = 0;
-//			TxMsgHdr.DLC = 6;//INBUS_FRAME_SIZE;
-//			TxMsgHdr.IDE = CAN_ID_STD;
-//			TxMsgHdr.RTR = CAN_RTR_DATA;
-//			//			hcan.pTxMsg->Data[0] = 0x01;
-//			//			hcan.pTxMsg->Data[1] = val & 0xFF;
-//			//			hcan.pTxMsg->Data[2] = (val >>  8) & 0xFF;
-//			//			hcan.pTxMsg->Data[3] = (val >> 16) & 0xFF;
-//			//			hcan.pTxMsg->Data[4] = (val >> 24) & 0xFF;
-//			tx_msg_data[0] = 0x01;					// 01 = Actual Data Returned
-//			tx_msg_data[1] = gen_get_status();		// Generator state
-//			val = gen_get_frequency();				// Frequency in Hz
-//			tx_msg_data[2] = val & 0xFF;
-//			tx_msg_data[3] = (val >>  8) & 0xFF;
-//			tx_msg_data[4] = (val >> 16) & 0xFF;
-//			tx_msg_data[5] = (val >> 24) & 0xFF;
-//			//			if( is_transmit_ready ){
-//			//				is_transmit_ready = 0;
-//			//				stat =  HAL_CAN_Transmit_IT( &hcan );
-//			//			}
-//			//HAL_CAN_GetTxMailboxesFreeLevel
-//			//        if (HAL_CAN_AddTxMessage(&CanHandle, &TxHeader, TxData, &TxMailbox) != HAL_OK)
-//			//HAL_CAN_AddTxMessage( &hcan, &TxMsgHdr, (uint8_t *)tx_msg_data, (uint32_t *)CAN_TX_MAILBOX0 );
-//			HAL_CAN_AddTxMessage( &hcan, &TxMsgHdr, (uint8_t *)tx_msg_data, &TxMailbox );
-//			//printf("freq = %d\n", val );
-//		}
-//		break;
-//	default:
-//		break;
-//	}
-//}
-
-void HAL_CAN_RxFifo0MsgPendingCallback( CAN_HandleTypeDef *phcan )
-{
-	HAL_StatusTypeDef   HAL_RetVal;
-
-	HAL_RetVal = HAL_CAN_GetRxMessage( phcan, CAN_RX_FIFO0, &RxMsgHdr, (uint8_t *)rx_msg_data );
-	if( HAL_RetVal == HAL_OK ){
-		//inbus_process();
-		// Copy the header
-		//memcpy( (void *)&RxMsgHdr2, (void *)&RxMsgHdr, sizeof(RxMsgHdr) );
-		can_receive_flag = 1;
-	}
-}
 
 void can_transmit_to(uint8_t *data) {
       /*##-4- Start the Transmission process #####################################*/
@@ -248,27 +99,30 @@ void can_transmit_to(uint8_t *data) {
       uint32_t TxMailbox = 0;
       HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox);
 
-      if (hcan.State == HAL_CAN_STATE_LISTENING) {
-        while (hcan.State == HAL_CAN_STATE_LISTENING)
-          __NOP;
-      }
-      else {
-        for (int i = 0; i < 1; i++) {
-          for (int i = 0; i < 15000; i++) {
-            __NOP;
-          }
-//          HAL_CAN_Transmit_IT(&hcan);
-//          HAL_CAN_Transmit(&hcan);
-        }
-      }
+//      if (hcan.State == HAL_CAN_STATE_LISTENING) {
+//        while (hcan.State == HAL_CAN_STATE_LISTENING)
+//          __NOP;
+//      }
+//      else {
+//        for (int i = 0; i < 1; i++) {
+//          for (int i = 0; i < 15000; i++) {
+//            __NOP;
+//          }
+//        }
+//      }
       //HAL_CAN_Transmit_IT(&hcan1);
       //}
-      if (HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox) != HAL_OK)
-      {   
-              //Error_Handler();
-              canFifoFulFil = 1;
-      }
-      HAL_CAN_GetTxMailboxesFreeLevel(&hcan);
+//      if (HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox) != HAL_OK)
+//      {   
+//              //Error_Handler();
+//              canFifoFulFil = 1;
+//      }
+//      HAL_CAN_GetTxMailboxesFreeLevel(&hcan);
+      
+	// Start receiving
+	//HAL_CAN_Receive_IT( &hcan, CAN_FIFO0 );
+        TxMailbox = 0;
+        HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox);
   }
 
 
@@ -523,18 +377,17 @@ int main(void)
   uint32_t measure_counter = 0;
   
 //=== CAN test transmit
-  if (max_temp_on_sensor >= 26.0) {
-          uint8_t TxData[8];
-          TxData[0] = 0x01;
-          TxData[1] = 0xFE;
-          TxData[2] = 1;
-          TxData[3] = 0;
-          TxData[4] = 0;
-          TxData[5] = 0;
-          TxData[6] = 0;
-          TxData[7] = 0;
-          can_transmit_to(TxData);
-        }
+  uint8_t TxData[8];
+  TxData[0] = 0x01;
+  TxData[1] = 0xFE;
+  TxData[2] = 1;
+  TxData[3] = 0;
+  TxData[4] = 0;
+  TxData[5] = 0;
+  TxData[6] = 0;
+  TxData[7] = 0;
+  can_transmit_to(TxData);
+
   
   printf("Can");
 
@@ -651,7 +504,7 @@ int main(void)
         printf("%0.3F;", max_temp_on_sensor);
         
       //=== Send alarm msg to CPU board via CAN
-        if (max_temp_on_sensor >= 26.0) {
+        if (max_temp_on_sensor >= avr_ambient_temp) {
           uint8_t TxData[8];
           TxData[0] = 0x01;
           TxData[1] = 0xFE;
