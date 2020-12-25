@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "can.h"
 #include "i2c.h"
 #include "tim.h"
 #include "gpio.h"
@@ -27,7 +28,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <string.h>
 #include "dwt_delay.h"
+#include "stm32f1xx_hal_can.h"
 
 #define TRIG_PIN GPIO_PIN_6
 #define TRIG_PORT GPIOA
@@ -35,6 +38,19 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
+//typedef enum
+//{
+//  HAL_CAN_STATE_RESET             = 0x00U,  /*!< CAN not yet initialized or disabled */
+//  HAL_CAN_STATE_READY             = 0x01U,  /*!< CAN initialized and ready for use   */
+//  HAL_CAN_STATE_BUSY              = 0x02U,  /*!< CAN process is ongoing              */
+//  HAL_CAN_STATE_BUSY_TX           = 0x12U,  /*!< CAN process is ongoing              */
+//  HAL_CAN_STATE_BUSY_RX           = 0x22U,  /*!< CAN process is ongoing              */
+//  HAL_CAN_STATE_BUSY_TX_RX        = 0x32U,  /*!< CAN process is ongoing              */
+//  HAL_CAN_STATE_TIMEOUT           = 0x03U,  /*!< Timeout state                       */
+//  HAL_CAN_STATE_ERROR             = 0x04U   /*!< CAN error state                     */
+//
+//}HAL_CAN_StateTypeDef;
 
 /* USER CODE END PTD */
 
@@ -50,226 +66,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t len = 0;
-uint8_t value_read[6][2];
-uint8_t value_read1[2];
-uint16_t regist = 0;
-uint8_t uart_buff[32];
-uint8_t uart_buff1[32];
-float fl_temperature[6];
-int i = 0;
-uint8_t transmitData[15];
-
-uint8_t transmitData1[364];
-float flTemperatureSum = 0;
-float flTemperatureAverage = 0;
-float flTemperatureAverage1 = 0;
-float lenf = 0.0;
-
-uint32_t timer;
-uint16_t timeToSend = 0;
-uint16_t j = 0;
-
-uint16_t value_readHigh = 0;
-uint16_t value_readLow = 0;
-uint8_t value_readHigh_aver = 0;
-uint8_t value_readLow_aver = 0;
-float fl_mlx_temp_aver = 0;
-uint8_t stateAver = 0;
-uint16_t k = 0;
-uint8_t kk = 0;
-float tt[190];
-float fl_temperatureA = 0.0;
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
-//void SystemClock_Config(void);
-//static void MX_GPIO_Init(void);
-//static void MX_DMA_Init(void);
-//static void MX_I2C1_Init(void);
-//static void MX_USART6_UART_Init(void);
-//static void MX_USART1_UART_Init(void);
-///* USER CODE BEGIN PFP */
-//float moving_average(float a, float *buff1, float *buff2, int N) {
-//  float summ_buff_obj_temp = 0;
-//
-//  //buff_obj_temp1[0] = a;
-//  buff1[0] = a;
-//
-//  for (uint8_t u = 0; u < N; u++) {
-//    summ_buff_obj_temp = summ_buff_obj_temp + buff1[u];
-//  }
-//  float f_t_obj = summ_buff_obj_temp / N;
-//  float t_obj = f_t_obj;
-//  for (uint8_t u = 0; u < N - 1; u++) {
-//    buff2[u + 1] = buff1[u];
-//
-//  }
-//  for (uint8_t u = 0; u < N; u++) {
-//    buff1[u] = buff2[u];
-//
-//  }
-//  return t_obj;
-//}
-////================================
-//void temp1(){
-//   //???? ?????? ??-???????? ? ????????
-//     for(int i = 0; i<6; i++){
-//
-//
-//              fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
-//              HAL_I2C_Mem_Read(&hi2c1, i2c_adr, mem_adr, 1, value_read[i], 3, 50);
-//
-//              HAL_Delay(10);
-//            flTemperatureSum = flTemperatureSum + fl_temperature[i];
-//
-//
-//      }
-//
-//      flTemperatureAverage = flTemperatureSum/6;
-//      flTemperatureSum = 0;
-//
-////      if(flTemperatureAverage>22){
-////        timer = 0;
-////        while(flTemperatureAverage>22){
-////          for(int i = 0; i<6; i++){
-////
-////
-////                    fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
-////
-////                    HAL_Delay(10);
-////                  flTemperatureSum = flTemperatureSum + fl_temperature[i];
-////
-////  k++;
-////            }
-////
-////
-////            flTemperatureAverage = flTemperatureSum/6;
-////           tt[k] = flTemperatureAverage;
-////
-////            flTemperatureSum = 0;
-////        }
-////      k = 0;
-////        timeToSend = timer;
-////      }
-//      fl_temperatureA = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(1), 0x06, value_read[i], 0x100);
-//}
-//
-////=====================================
-//void dataCollectByte(){
-//   //???? ?????? ??-???????? ?? ??????
-//     for(int i = 0; i<6; i++){
-//
-//
-//
-//            i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
-//            HAL_Delay(10);
-//
-//                transmitData[2*i+1] = value_read[i][0];
-//                transmitData[2*i+2] = value_read[i][1];
-//
-//          }
-//
-//             transmitData[0] = 's';
-//
-//             transmitData[14] = 'e';
-//             fl_temperatureA = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(1), 0x06, value_read1, 0x100);
-//
-//                HAL_Delay(10);
-//
-//                fl_temperatureA = fl_temperatureA*10;
-//                transmitData[13] = ((int)fl_temperatureA);
-//
-//             HAL_UART_Transmit_DMA(&huart1, (uint8_t*) transmitData, 15);
-//                            HAL_Delay(20);
-//}
-////==========================================
-//void lvProxsonar(){
-//   //========================================
-//      //????????? ??????? ??????????
-//      //======================================
-//               uint16_t temp_len = 0;
-//                uint8_t n_len = 0;
-//                 for(int j = 0; j<26; j++){
-//
-//                    if(uart_buff[j]=='R'&&uart_buff[j+5]=='P'){
-//
-//
-//                    temp_len = temp_len + ((uart_buff[j+1]-48)*100 + (uart_buff[j+2]-48)*10 + (uart_buff[j+3]-48));
-//
-//                      n_len++;
-//                  }
-//
-//                  }
-//
-//                 if(n_len) {
-//                   len = temp_len/n_len;
-//                   lenf = len*2.54;
-//                 }
-//                 if(len<255) transmitData[13] = len;
-//}
-//
-////threshold
-//void tempThreshold(uint8_t tempThreshold){
-//  for(int i = 0; i<6; i++){
-//
-//
-//                          //fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
-//                      i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
-//                      HAL_Delay(10);
-//
-//                            value_readHigh = value_readHigh + value_read[i][1];
-//                                    value_readLow = value_readLow + value_read[i][0];
-//
-//                }
-//
-//              value_readHigh_aver = value_readHigh/6;
-//              value_readLow_aver = value_readLow/6;
-//              fl_mlx_temp_aver = (value_readHigh_aver*256 + value_readLow_aver)*0.02 - 273.15;
-//              value_readHigh = 0;
-//              value_readLow = 0;
-//      if(fl_mlx_temp_aver>tempThreshold){
-//        timer = 0;
-//           stateAver = 1;
-//
-//       for(j = 0; j<30; j++){
-//
-//         //???? ?????? ??-???????? ?? ??????
-//          for(int i = 0; i<6; i++){
-//
-//
-//                      //fl_temperature[i] = i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i], 0x100);
-//                  i2cMLX.mlxRead(hi2c1, i2cMLX.getMlxSlaveAddr(i+1), i2cMLX.getRegAddr("TOBJ1"), value_read[i]);
-//                  HAL_Delay(10);
-//
-//                      transmitData1[2*i +1+ 12*j] = value_read[i][0];
-//                      transmitData1[2*i+2 + 12*j] = value_read[i][1];
-//                                value_readHigh = value_readHigh + value_read[i][1];
-//                                value_readLow = value_readLow + value_read[i][0];
-//
-//            }
-//           k++;
-//          value_readHigh_aver = value_readHigh/6;
-//          value_readLow_aver = value_readLow/6;
-//          fl_mlx_temp_aver = (value_readHigh_aver * 256 + value_readLow_aver)*0.02 - 273.15;
-//          value_readHigh = 0;
-//          value_readLow = 0;
-//          tt[k] = fl_mlx_temp_aver;
-//          if(fl_mlx_temp_aver<22&&stateAver==1){
-//            stateAver = 0;
-//            timeToSend = timer;
-//            kk = k;
-//          }
-//
-//        }
-//
-//           transmitData1[0] = 's';
-//           transmitData1[363] = 'e';
-//           transmitData1[361] = timer;
-//           transmitData1[362] = timer>>8;
-//
-//      }
-//}
 
 /* USER CODE END PV */
 
@@ -282,69 +78,199 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//=== HC-SR04 ===//
-uint32_t IC_Val1 = 0;
-uint32_t IC_Val2 = 0;
-uint32_t Difference = 0;
-uint8_t Is_First_Captured = 0;  // is the first value captured ?
-uint16_t Distance  = 0;
+__no_init CAN_FilterTypeDef		sFilterConfig;
+__no_init CAN_TxHeaderTypeDef 	TxMsgHdr;
+__no_init CAN_RxHeaderTypeDef 	RxMsgHdr;
+//__no_init CAN_RxHeaderTypeDef 	RxMsgHdr2;
+__no_init char rx_msg_data[8];
+__no_init char tx_msg_data[8];
+uint32_t TxMailbox;
+//CanTxMsgTypeDef			TxMsg;
+//CanRxMsgTypeDef			RxMsg;
+//CanRxMsgTypeDef			RxMsg0;
+HAL_StatusTypeDef 		stat;
+//HAL_CAN_StateTypeDef 	can_stat;
+//uint32_t 				can_err;
+//char					is_transmit_ready;
+char can_receive_flag;
 
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+CAN_TxHeaderTypeDef    TxHeader1;
+CAN_FilterTypeDef  sFilterConfig;
+uint32_t canFifoFulFil;
+//HAL_StatusTypeDef HAL_CAN_Transmit_IT(CAN_HandleTypeDef* hcan)
+
+void inbus_init( void )
 {
-  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)  // if the interrupt source is channel1
-  {
-    if (Is_First_Captured==0) // if the first value is not captured
-    {
-      IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
-      Is_First_Captured = 1;  // set the first captured as true
-      // Now change the polarity to falling edge
-      __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-    }
+//	//int i;
+//	CAN_FilterConfTypeDef  sFilterConfig;
+//
+//	// Clear devices list
+//	//memset( (void *)can_buf, 0, sizeof(can_buf) );
+//	memset( (void *)&rxbuf, 0, sizeof(rxbuf) );
+//	memset( (void *)&txbuf, 0, sizeof(txbuf) );
+//	
+//	// Init the CAN interface
+//	MX_CAN1_Init();
+//	// Reset CAN variables
+//	can_receive_flag = 0;
+//	can_rx_err_flag = can_tx_err_flag = HAL_OK;
+//	//ipos = opos = dnum = 0;
+//	is_can_transmit_ready = 1;
+//	// Initially setup TX message
+//	hcan.pTxMsg = &TxMsg0;
+//	hcan.pRxMsg = &RxMsg0;
+//	hcan.pTxMsg->StdId = INBUS_DEVICE_ID;
+//	hcan.pTxMsg->ExtId = 0x00;
+//	hcan.pTxMsg->RTR = CAN_RTR_DATA;
+//	hcan.pTxMsg->IDE = CAN_ID_STD;
+	// Configure the CAN Filter to receive all the packets
+	sFilterConfig.FilterBank = 0;
+	sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
+	sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
+	sFilterConfig.FilterIdHigh = 0;
+	sFilterConfig.FilterIdLow = 0x10;
+	sFilterConfig.FilterMaskIdHigh = 0x0000;
+	sFilterConfig.FilterMaskIdLow = 0x0000;
+	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	sFilterConfig.FilterActivation = ENABLE;
+	sFilterConfig.SlaveStartFilterBank = 14;
+	if( HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK ){
+		// Filter configuration Error
+		Error_Handler();
+	}
+	// Start the CAN interface
+	stat = HAL_CAN_Start( &hcan );
+	if( stat != HAL_OK ){
+		/* CAN start Error */
+		Error_Handler();
+	}
+	// Set the receiver notification
+	stat = HAL_CAN_ActivateNotification( &hcan, CAN_IT_RX_FIFO0_MSG_PENDING );
+	if( stat != HAL_OK ){
+		/* CAN Set notification Error */
+		Error_Handler();
+	}
+	// Start receiving
+	//HAL_CAN_Receive_IT( &hcan, CAN_FIFO0 );
+}
+//
+//void inbus_process( void )
+//{
+//	uint32_t val;
+//
+//	// Check for data received
+//	if( !can_receive_flag ){
+//		return;
+//	}
+//	can_receive_flag = 0;
+//	// Check for bus request
+//	switch( RxMsgHdr.StdId ){
+//		//	case INBUS_MASTER_ID:		// Device address request
+//		//		if( RxMsg.Data[0] == 0 && RxMsg.Data[1] == 0 ){
+//		//			hcan.pTxMsg->StdId = INBUS_MASTER_ID;
+//		//			hcan.pTxMsg->DLC = 2;
+//		//			*(uint16_t *)hcan.pTxMsg->Data = (uint16_t)INBUS_DEVICE_ID;
+//		//			if( is_transmit_ready ){
+//		//				is_transmit_ready = 0;
+//		//				stat =  HAL_CAN_Transmit_IT( &hcan );
+//		//			}
+//		//		}
+//		//		break;
+//	case INBUS_DEVICE_ID:	// Data request. Specific for every device type
+//		if( rx_msg_data[0] & 0x80 ){
+//			// Write the data
+//			val = (uint32_t)rx_msg_data[1] | ((uint32_t)rx_msg_data[2] << 8) | ((uint32_t)rx_msg_data[3] << 16) | ((uint32_t)rx_msg_data[4] << 24);
+//			gen_set_frequency( val & 0xFFFF );
+//			//printf("set %d\n", val );
+//		} else {
+//			// Read the data
+//			//			hcan.pTxMsg->StdId = INBUS_DEVICE_ID;
+//			//			hcan.pTxMsg->DLC = INBUS_FRAME_SIZE;
+//			TxMsgHdr.StdId = INBUS_DEVICE_ID;
+//			TxMsgHdr.ExtId = 0;
+//			TxMsgHdr.DLC = 6;//INBUS_FRAME_SIZE;
+//			TxMsgHdr.IDE = CAN_ID_STD;
+//			TxMsgHdr.RTR = CAN_RTR_DATA;
+//			//			hcan.pTxMsg->Data[0] = 0x01;
+//			//			hcan.pTxMsg->Data[1] = val & 0xFF;
+//			//			hcan.pTxMsg->Data[2] = (val >>  8) & 0xFF;
+//			//			hcan.pTxMsg->Data[3] = (val >> 16) & 0xFF;
+//			//			hcan.pTxMsg->Data[4] = (val >> 24) & 0xFF;
+//			tx_msg_data[0] = 0x01;					// 01 = Actual Data Returned
+//			tx_msg_data[1] = gen_get_status();		// Generator state
+//			val = gen_get_frequency();				// Frequency in Hz
+//			tx_msg_data[2] = val & 0xFF;
+//			tx_msg_data[3] = (val >>  8) & 0xFF;
+//			tx_msg_data[4] = (val >> 16) & 0xFF;
+//			tx_msg_data[5] = (val >> 24) & 0xFF;
+//			//			if( is_transmit_ready ){
+//			//				is_transmit_ready = 0;
+//			//				stat =  HAL_CAN_Transmit_IT( &hcan );
+//			//			}
+//			//HAL_CAN_GetTxMailboxesFreeLevel
+//			//        if (HAL_CAN_AddTxMessage(&CanHandle, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+//			//HAL_CAN_AddTxMessage( &hcan, &TxMsgHdr, (uint8_t *)tx_msg_data, (uint32_t *)CAN_TX_MAILBOX0 );
+//			HAL_CAN_AddTxMessage( &hcan, &TxMsgHdr, (uint8_t *)tx_msg_data, &TxMailbox );
+//			//printf("freq = %d\n", val );
+//		}
+//		break;
+//	default:
+//		break;
+//	}
+//}
 
-    else if (Is_First_Captured==1)   // if the first is already captured
-    {
-      IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
-      __HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+void HAL_CAN_RxFifo0MsgPendingCallback( CAN_HandleTypeDef *phcan )
+{
+	HAL_StatusTypeDef   HAL_RetVal;
 
-      if (IC_Val2 > IC_Val1)
-      {
-        Difference = IC_Val2-IC_Val1;
+	HAL_RetVal = HAL_CAN_GetRxMessage( phcan, CAN_RX_FIFO0, &RxMsgHdr, (uint8_t *)rx_msg_data );
+	if( HAL_RetVal == HAL_OK ){
+		//inbus_process();
+		// Copy the header
+		//memcpy( (void *)&RxMsgHdr2, (void *)&RxMsgHdr, sizeof(RxMsgHdr) );
+		can_receive_flag = 1;
+	}
+}
+
+void can_transmit_to(uint8_t *data) {
+      /*##-4- Start the Transmission process #####################################*/
+
+  //  TxHeader.TransmitGlobalTime = DISABLE;
+      //TxHeader.DLC = sizeof data;
+      TxHeader1.DLC = 6;
+      TxHeader1.StdId = 0x100;
+      //TxHeader.ExtId = 0x1;
+      TxHeader1.RTR = CAN_RTR_DATA;
+      TxHeader1.IDE = CAN_ID_STD;
+//      for (uint8_t i = 0; i < 8; ++i) {
+////        TxHeader1.Data[i] = data[i];
+//      }
+      uint32_t TxMailbox = 0;
+      HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox);
+
+      if (hcan.State == HAL_CAN_STATE_LISTENING) {
+        while (hcan.State == HAL_CAN_STATE_LISTENING)
+          __NOP;
       }
-
-      else if (IC_Val1 > IC_Val2)
-      {
-        Difference = (0xFFFF - IC_Val1) + IC_Val2;
+      else {
+        for (int i = 0; i < 1; i++) {
+          for (int i = 0; i < 15000; i++) {
+            __NOP;
+          }
+//          HAL_CAN_Transmit_IT(&hcan);
+//          HAL_CAN_Transmit(&hcan);
+        }
       }
-
-      //Distance = Difference * .034/2;
-//      Distance = Difference / 58.8 * 2;
-      if ((Difference / 58.8 * 2) >= 390) {
-    	  Distance = 0;
-      } else {
-    	  Distance = Difference / 58.8 * 2;
+      //HAL_CAN_Transmit_IT(&hcan1);
+      //}
+      if (HAL_CAN_AddTxMessage(&hcan, &TxHeader1, data, &TxMailbox) != HAL_OK)
+      {   
+              //Error_Handler();
+              canFifoFulFil = 1;
       }
-      Is_First_Captured = 0; // set it back to false
-
-      // set polarity to rising edge
-      __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
-      __HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC1);
-//      printf("Val1 %d\n", IC_Val1);
-//      printf("Val2 %d\n", IC_Val2);
-    }
+      HAL_CAN_GetTxMailboxesFreeLevel(&hcan);
   }
-}
 
-void HCSR04_Read(void)
-{
-  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin HIGH
-  DWT_Delay(2);  // wait for 2 us
-
-  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
-  DWT_Delay(10);  // wait for 10 us
-  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
-
-  __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_CC1);
-}
 
 //=== CRC ===//
 uint8_t crc_8(uint8_t inCrc, uint8_t inData)
@@ -375,38 +301,7 @@ uint8_t crc(uint8_t *Data)
   return data;
 }
 
-float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
-  float data_temp = (float)(msb_temp << 8 | lsb_temp);
-//  printf("msb %d\n", msb_temp);
-//  printf("msb %d\n", lsb_temp);
-//  printf("ADJ before %.4F\n", data_temp);
-  data_temp = (data_temp - 13658) / 50;
-//  printf("ADJ %.4F\n", data_temp);
-  float adjusted_temp = 0.0;
-  adjusted_temp = data_temp;
-  //=== Here is the separating point between two calculation
-  //=== NOT high temp alert-point!
-//  if (data_temp >= 35.05) {
-//    adjusted_temp = (1025 * data_temp) / (1000 - data_temp);
-//  }
-//  else {
-//    adjusted_temp = (283 * 21 * data_temp) / (100 * (21 + data_temp));
-//  }
-  return adjusted_temp;
-}
-
-float obtain_max_temp(uint16_t *log_array, uint16_t log_array_size){
-  uint16_t max_value = 0;
-  for (int i=0; i < log_array_size; i++) {
-    if (log_array[i] > max_value) {
-      max_value = log_array[i];
-    }
-  }
-  printf("%d;Local Max;", max_value);
-  return ((float)max_value)/100;
-}
-
-void Array_sort(uint16_t *array , uint16_t amount)
+void array_sort(uint16_t *array , uint16_t amount)
 {
     // declare some local variables
     uint16_t i=0 , j=0 , temp=0;
@@ -425,30 +320,54 @@ void Array_sort(uint16_t *array , uint16_t amount)
     }
 }
 
-/*
-// function to calculate the median of the array
-float Find_median(uint32_t array[] , uint16_t amount)
-{
-    float median=0;
-
-    // if number of elements are even
-    if(amount%2 == 0)
-        median = (array[(amount-1)/2] + array[amount/2])/2.0;
-    // if number of elements are odd
-    else
-        median = array[amount/2];
-
-    return median;
+//=== Convert temp from Kelvin to Celsius
+//=== and make value adjustment
+float adjust_temp(uint8_t msb_temp, uint8_t lsb_temp) {
+  float data_temp = (float)(msb_temp << 8 | lsb_temp);
+//  printf("msb %d\n", msb_temp);
+//  printf("msb %d\n", lsb_temp);
+//  printf("ADJ before %.4F\n", data_temp);
+  data_temp = (data_temp - 13658) / 50;
+//  printf("ADJ %.4F\n", data_temp);
+  float adjusted_temp = 0.0;
+  adjusted_temp = data_temp;
+  
+//=== Here is the separating point between two calculation
+//=== to make it close to mercury thermometer values
+//=== NOT high temp alert-point!
+  
+//  if (data_temp >= 35.05) {
+//    adjusted_temp = (1025 * data_temp) / (1000 - data_temp);
+//  }
+//  else {
+//    adjusted_temp = (283 * 21 * data_temp) / (100 * (21 + data_temp));
+//  }
+  return adjusted_temp;
 }
-*/
 
-uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
-uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
+//=== Find max value form buff in (int)-ed temps
+float obtain_max_temp(uint16_t *log_array, uint16_t log_array_size){
+  uint16_t max_value = 0;
+  for (int i=0; i < log_array_size; i++) {
+    if (log_array[i] > max_value) {
+      max_value = log_array[i];
+    }
+  }
+  printf("Local Max;");
+  return ((float)max_value)/100;
+}
+
+//=== Two orders of sensors
+//  uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
+  uint8_t bar_sensors[6] = {0xA2, 0xB2, 0xA4, 0xB4, 0xA6, 0xB6};
+//uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
 uint32_t mem_adr = 0x07;
 uint8_t in_buff[0x04];
 uint8_t Err = 0;
 float data_fl = 0.0;
 
+
+//=== Calculate average temp of enviroment in sensors field of view
 float calibrate_ambient(uint8_t i2c_adr) {
   uint16_t cycles_value = 1;
   uint16_t avr_array[1]; // = cycles_value
@@ -468,7 +387,7 @@ float calibrate_ambient(uint8_t i2c_adr) {
       HAL_Delay(40);
     }
 
-    Array_sort(ambient_array, amount);
+    array_sort(ambient_array, amount);
     sum = 0;
     for (uint8_t pos=0; pos<amount; pos++) {
       sum += ambient_array[pos];
@@ -492,15 +411,33 @@ float calibrate_ambient(uint8_t i2c_adr) {
   return ((float)avr_ambient_temp / 100);
 }
 
-//void send_uart(float data_temp) {
-//  uint8_t buf[16];
-//  sprintf(buf, "Temp %.2F      ", data_temp);
-//  HAL_UART_Transmit(&huart6, (uint8_t*)&buf, sizeof(buf), 0xFFFF);
-//  HAL_UART_Transmit(&huart6, (uint8_t*)"              \r\n", sizeof(buf), 0xFFFF);
-//  printf("data %4.2F \n", data_temp);
-//  printf("data %s \n", buf);
-//}
+//=== Function to calculate average ambient temp
+float get_avr_ambient() {
+  HAL_Delay(300);
+  float ambient_avr[6];
+  for (int i=0; i < 6; i++) {
+    ambient_avr[i] = calibrate_ambient(bar_sensors[i]);
+    printf("At 0x%X ambient_avr = %.2F\n", bar_sensors[i], ambient_avr[i]);
+  }
 
+  float sum = 0;
+  for (uint8_t pos=0; pos < 6; pos++) {
+      sum += ambient_avr[pos];
+//      printf("sum = ambient_avr = %.2F\n", ambient_avr[pos]);
+  }
+
+  float avr_ambient_temp = sum / 6;
+  printf("\nGlobal Ambient AVR = %.2F\n", avr_ambient_temp);
+
+  for (uint8_t pos=0; pos < 6; pos++) {
+    printf("Disp: %.2F\n", ambient_avr[pos] - avr_ambient_temp);
+  }
+  return avr_ambient_temp;
+}
+
+
+//=== Set new address for sensor
+//=== (All connected sensors will recieve this address)
 void set_new_addr(uint8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
 {
 //  uint8_t Err = 0;
@@ -532,8 +469,6 @@ void set_new_addr(uint8_t new_adr, int32_t mem_adr, uint8_t *in_buff)
   * @brief  The application entry point.
   * @retval int
   */
-
-
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -566,48 +501,50 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
+  MX_CAN_Init();
+  inbus_init();
+  
   /* USER CODE BEGIN 2 */
   printf("======= 000 =======\n\n");
 
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
   HAL_Delay(300);
   
-  uint8_t sensor_amount = 4;
-
-//  float ambient_avr[6];
-//  float max_data = 0.0;
-//  float float_max_data = 30.0;
-//  float float_amb_data = 30.0;
-//  float diff_float_data = 3.0;
-  float sum_data = 0;
+//=== Number of sensors in use
+  uint8_t sensor_amount = 6;
   
-  const uint16_t log_array_size = 300;
+  float sum_data = 0;  
+  uint16_t log_array_size = 300;
   uint16_t log_array[300];
   float log_buff[6];
   float max_temp_on_sensor = 0;
   uint16_t log_array_pos = 0;
   
   uint32_t measure_counter = 0;
-
-//  int new_max_data = 3000;
-//  int ambient_data = 3000;
-//  int diff_data = 3000;
-//  int data_val = 0;
-//  int data_dec = 0;
-//  int8_t Err = 0;
-
-//  uint8_t bar_sensors[6] = {0xA2, 0xA4, 0xA6, 0xB2, 0xB4, 0xB6};
-  uint8_t bar_sensors[6] = {0xA2, 0xB2, 0xA4, 0xB4, 0xA6, 0xB6};
-//  uint8_t i2c_adr = 0xB2; // A2, B2, A4, B4, A6, B6
-  uint32_t mem_adr = 0x07;
-  uint8_t in_buff[0x04];
+  
+//=== CAN test transmit
+  if (max_temp_on_sensor >= 26.0) {
+          uint8_t TxData[8];
+          TxData[0] = 0x01;
+          TxData[1] = 0xFE;
+          TxData[2] = 1;
+          TxData[3] = 0;
+          TxData[4] = 0;
+          TxData[5] = 0;
+          TxData[6] = 0;
+          TxData[7] = 0;
+          can_transmit_to(TxData);
+        }
+  
+  printf("Can");
 
 //=== Set new_adr as new I2C address
 //  uint8_t new_adr = i2c_adr;
 //  set_new_addr(new_adr>>1, mem_adr, in_buff);
 
 //=== Temp ambient calibration
-//  HAL_Delay(500);
+//  HAL_Delay(300);
+//  float ambient_avr[6];
 //  for (int i=0; i < 6; i++) {
 //    ambient_avr[i] = calibrate_ambient(bar_sensors[i]);
 //    printf("At 0x%X ambient_avr = %.2F\n", bar_sensors[i], ambient_avr[i]);
@@ -617,7 +554,7 @@ int main(void)
 //  for (uint8_t pos=0; pos < 6; pos++) {
 //      sum += ambient_avr[pos];
 ////      printf("sum = ambient_avr = %.2F\n", ambient_avr[pos]);
-//    }
+//  }
 //
 //  float avr_ambient_temp = sum / 6;
 //  printf("\nGlobal Ambient AVR = %.2F\n", avr_ambient_temp);
@@ -626,6 +563,9 @@ int main(void)
 //    printf("Disp: %.2F\n", ambient_avr[pos] - avr_ambient_temp);
 //  }
 //  printf("\n");
+  float avr_ambient_temp = get_avr_ambient();
+  printf("\n");
+  
 
   /* USER CODE END 2 */
 
@@ -633,25 +573,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      //=== Read data from HC-SR04
-      /*
-          HCSR04_Read();
-          printf("Distance = %d\n", Distance);
-      */
-
-//    printf("=== %d ===\n", measure_counter++);
-    measure_counter++;
+    printf("%d;", measure_counter++);
     
-    for (uint8_t i=1; i<sensor_amount+1; i++) {
+    for (uint8_t i=0; i<sensor_amount; i++) {
       
     //=== Read data from sensor via I2C
         Err = HAL_I2C_Mem_Read(&hi2c1, bar_sensors[i], mem_adr, 1, in_buff, 3, 0x100);
-        HAL_Delay(3); // Delay for I2C responce
+        HAL_Delay(5); // Delay for I2C responce
 
     //=== Check if there is no error in I2C read
         if (Err == HAL_OK) {
 
-          //=== Check if there is no error in I2C read
+          //=== Read 2 bytes and convert to Celsius
               data_fl = adjust_temp(in_buff[1], in_buff[0]);
               
           //=== Check if temp close to ambient
@@ -668,7 +601,7 @@ int main(void)
           //=== Print temperature in terminal
               //		  printf("    Adj %.2F\n", data_fl);
 //              printf("%X;%.2F\n", bar_sensors[i], data_fl);
-//                printf("%.4F;", data_fl);
+                printf("%.2F;", data_fl);
               sum_data += data_fl;
               log_buff[i] = data_fl;
 
@@ -682,10 +615,10 @@ int main(void)
 //              ambient_data = (int)(data_fl*100);
 //              diff_data = float_max_data - ambient_data;
 //              float_amb_data = data_fl;
-              //        printf("Ta: %.2F\n", data_fl);
+//              printf("Ta: %.2F\n", data_fl);
 
-//			  float_max_data = max_data;
-//			  diff_float_data = float_max_data - float_amb_data;
+//              float_max_data = max_data;
+//              diff_float_data = float_max_data - float_amb_data;
 
         }
         else {
@@ -694,9 +627,13 @@ int main(void)
 //        HAL_Delay(20); 
     }
     
-//=== Check for threshold after every sensor cycle
-    if ((sum_data / sensor_amount >= 25.6) 
+//=== Check for threshold above avr_ambient_temp after 
+//=== every full sensors cycleto catch pass
+    
+    if ((sum_data / sensor_amount >= (avr_ambient_temp * 1.01)) 
         && (log_array_pos +sensor_amount < log_array_size)) {
+          
+    //=== Fill buff of previous temp with float to int
       for (int i=0; i < sensor_amount; i++) {
         log_array[log_array_pos+i] = (int)(log_buff[i]*100);
 //        printf("log %d   at pos %d\n", log_array[log_array_pos+i], log_array_pos+i);
@@ -705,16 +642,34 @@ int main(void)
     } 
     else 
     { 
+    //=== Check if high temp not a noise pump
       if (log_array_pos >= 40) {
+      
+      //=== Find max temp in last measures
         max_temp_on_sensor = obtain_max_temp(log_array, log_array_pos);
 //        printf("\n===== %0.3F = at %d===\n\n", max_temp_on_sensor, measure_counter);
         printf("%0.3F;", max_temp_on_sensor);
+        
+      //=== Send alarm msg to CPU board via CAN
+        if (max_temp_on_sensor >= 26.0) {
+          uint8_t TxData[8];
+          TxData[0] = 0x01;
+          TxData[1] = 0xFE;
+          TxData[2] = 1;
+          TxData[3] = 0;
+          TxData[4] = 0;
+          TxData[5] = 0;
+          TxData[6] = 0;
+          TxData[7] = 0;
+          can_transmit_to(TxData);
+        }
       }
       log_array_pos = 0;
     }
     
-//    printf("%.4F\n", sum_data);
-    printf("%d;%.3F\n",measure_counter, sum_data / sensor_amount);
+//=== Print average temp
+    printf("%.3F\n", sum_data / sensor_amount);
+//    printf("%.3F;%d\n", sum_data / sensor_amount, measure_counter);
     sum_data = 0;
     
     
@@ -742,7 +697,7 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -752,7 +707,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -769,6 +724,114 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+//HAL_CAN_TxCpltCallback() {
+////  HAL_CAN_Transmit_IT(); // Rearm transmit
+//  HAL_CAN_Transmit(); 
+//}
+
+//HAL_StatusTypeDef HAL_CAN_Transmit_IT(CAN_HandleTypeDef* hcan)
+//{
+//  uint32_t  transmitmailbox = CAN_TXSTATUS_NOMAILBOX;
+//  
+//  /* Check the parameters */
+//  assert_param(IS_CAN_IDTYPE(hcan->pTxMsg->IDE));
+//  assert_param(IS_CAN_RTR(hcan->pTxMsg->RTR));
+//  assert_param(IS_CAN_DLC(hcan->pTxMsg->DLC));
+// 
+//  if(((hcan->Instance->TSR&CAN_TSR_TME0) == CAN_TSR_TME0) || \
+//     ((hcan->Instance->TSR&CAN_TSR_TME1) == CAN_TSR_TME1) || \
+//     ((hcan->Instance->TSR&CAN_TSR_TME2) == CAN_TSR_TME2))
+//  {
+//    /* Process Locked */
+//    __HAL_LOCK(hcan);
+//    
+//    /* Select one empty transmit mailbox */
+//    if((hcan->Instance->TSR&CAN_TSR_TME0) == CAN_TSR_TME0)
+//    {
+//      transmitmailbox = CAN_TXMAILBOX_0;
+//    }
+//    else if((hcan->Instance->TSR&CAN_TSR_TME1) == CAN_TSR_TME1)
+//    {
+//      transmitmailbox = CAN_TXMAILBOX_1;
+//    }
+//    else
+//    {
+//      transmitmailbox = CAN_TXMAILBOX_2;
+//    }
+//	
+//    /* Set up the Id */
+//    hcan->Instance->sTxMailBox[transmitmailbox].TIR &= CAN_TI0R_TXRQ;
+//    if(hcan->pTxMsg->IDE == CAN_ID_STD)
+//    {
+//      assert_param(IS_CAN_STDID(hcan->pTxMsg->StdId));  
+//      hcan->Instance->sTxMailBox[transmitmailbox].TIR |= ((hcan->pTxMsg->StdId << 21) | \
+//                                                hcan->pTxMsg->RTR);
+//    }
+//    else
+//    {
+//      assert_param(IS_CAN_EXTID(hcan->pTxMsg->ExtId));
+//      hcan->Instance->sTxMailBox[transmitmailbox].TIR |= ((hcan->pTxMsg->ExtId << 3) | \
+//                                                hcan->pTxMsg->IDE | \
+//                                                hcan->pTxMsg->RTR);
+//    }
+//    
+//    /* Set up the DLC */
+//    hcan->pTxMsg->DLC &= (uint8_t)0x0000000FU;
+//    hcan->Instance->sTxMailBox[transmitmailbox].TDTR &= (uint32_t)0xFFFFFFF0U;
+//    hcan->Instance->sTxMailBox[transmitmailbox].TDTR |= hcan->pTxMsg->DLC;
+//
+//    /* Set up the data field */
+//    hcan->Instance->sTxMailBox[transmitmailbox].TDLR = (((uint32_t)hcan->pTxMsg->Data[3] << 24) | 
+//                                           ((uint32_t)hcan->pTxMsg->Data[2] << 16) |
+//                                           ((uint32_t)hcan->pTxMsg->Data[1] << 8) | 
+//                                           ((uint32_t)hcan->pTxMsg->Data[0]));
+//    hcan->Instance->sTxMailBox[transmitmailbox].TDHR = (((uint32_t)hcan->pTxMsg->Data[7] << 24) | 
+//                                           ((uint32_t)hcan->pTxMsg->Data[6] << 16) |
+//                                           ((uint32_t)hcan->pTxMsg->Data[5] << 8) |
+//                                           ((uint32_t)hcan->pTxMsg->Data[4]));
+//
+//
+//    
+//    if(hcan->State == HAL_CAN_STATE_BUSY_RX) 
+//    {
+//      /* Change CAN state */
+//      hcan->State = HAL_CAN_STATE_BUSY_TX_RX;
+//    }
+//    else
+//    {
+//      /* Change CAN state */
+//      hcan->State = HAL_CAN_STATE_BUSY_TX;
+//    }
+//      
+//    /* Set CAN error code to none */
+//    hcan->ErrorCode = HAL_CAN_ERROR_NONE;
+//      
+//    /* Process Unlocked */
+//    __HAL_UNLOCK(hcan);
+//	
+//    /* Enable Error warning, Error passive, Bus-off,
+//       Last error and Error Interrupts */	
+//    __HAL_CAN_ENABLE_IT(hcan, CAN_IT_EWG |
+//                              CAN_IT_EPV |
+//                              CAN_IT_BOF |
+//                              CAN_IT_LEC |
+//                              CAN_IT_ERR |
+//							  CAN_IT_TME);
+//      
+//    /* Request transmission */
+//    hcan->Instance->sTxMailBox[transmitmailbox].TIR |= CAN_TI0R_TXRQ;
+//  }
+//  else
+//  {
+//    /* Change CAN state */
+//    hcan->State = HAL_CAN_STATE_ERROR; 
+//
+//    /* Return function status */
+//    return HAL_ERROR;
+//  }
+//  
+//  return HAL_OK;
+//}
 /* USER CODE END 4 */
 
 /**
@@ -792,7 +855,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

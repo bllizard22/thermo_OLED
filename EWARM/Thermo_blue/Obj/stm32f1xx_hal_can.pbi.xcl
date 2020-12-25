@@ -1,4 +1,4 @@
-"C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_F103\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_pwr.c"
+"C:\Users\n.kruchkov\Desktop\Projects\Thermo_Board_MLX90614\Thermo_F103\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_can.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512
